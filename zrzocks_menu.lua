@@ -1,4 +1,4 @@
--- SWILL — zrzocks menu (FULL VERSION)
+-- SWILL — zrzocks menu (FULL VERSION + AUTO BUY)
 local player = game.Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -12,6 +12,7 @@ local godModeEnabled = false
 local noclipEnabled = false
 local jumpEnabled = false
 local antiAFKEnabled = false
+local autoBuyEnabled = false  -- НОВАЯ ПЕРЕМЕННАЯ
 local speedValue = 100
 local isFolded = false
 
@@ -102,6 +103,27 @@ local function startAttract()
     end)
 end
 
+-- ---- AUTO BUY (ТЕЛЕПОРТ НА ВСЕ КНОПКИ) ----
+local function startAutoBuy()
+    spawn(function()
+        while autoBuyEnabled do
+            wait(0.3)
+            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not hrp then continue end
+
+            local allButtons = workspace:FindFirstChild("AllButtons")
+            if not allButtons then continue end
+
+            for _, part in pairs(allButtons:GetChildren()) do
+                if part:IsA("BasePart") then
+                    hrp.CFrame = CFrame.new(part.Position + Vector3.new(0, 0.5, 0))
+                    wait(0.15)
+                end
+            end
+        end
+    end)
+end
+
 -- ---- GOD MODE ----
 local function startGodMode()
     spawn(function()
@@ -126,8 +148,8 @@ gui.ResetOnSpawn = false
 
 -- ---- MAIN FRAME ----
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 420, 0, 520)
-frame.Position = UDim2.new(0.5, -210, 0.5, -260)
+frame.Size = UDim2.new(0, 420, 0, 560) -- УВЕЛИЧЕНО, ЧТОБЫ ВМЕСТИТЬ ВКЛАДКУ
+frame.Position = UDim2.new(0.5, -210, 0.5, -280)
 frame.BackgroundColor3 = Color3.fromRGB(12, 12, 25)
 frame.BackgroundTransparency = 0
 frame.BorderSizePixel = 0
@@ -219,8 +241,10 @@ tabFrame.Position = UDim2.new(0, 5, 0, 40)
 tabFrame.BackgroundTransparency = 1
 tabFrame.Parent = frame
 
+-- ДОБАВЛЕНА ВКЛАДКА "Farm"
 local tabs = {
     {name = "Main", color = Color3.fromRGB(45, 45, 70)},
+    {name = "Farm", color = Color3.fromRGB(30, 30, 55)},
     {name = "Extras", color = Color3.fromRGB(30, 30, 55)},
     {name = "Credits", color = Color3.fromRGB(30, 30, 55)}
 }
@@ -230,8 +254,8 @@ local containers = {}
 
 for i, tab in ipairs(tabs) do
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.333, 0, 1, 0)
-    btn.Position = UDim2.new((i-1) * 0.333, 0, 0, 0)
+    btn.Size = UDim2.new(0.25, 0, 1, 0)
+    btn.Position = UDim2.new((i-1) * 0.25, 0, 0, 0)
     btn.BackgroundColor3 = tab.color
     btn.BorderSizePixel = 0
     btn.Text = tab.name
@@ -261,7 +285,7 @@ for i, tab in ipairs(tabs) do
     end)
 end
 
--- ---- MAIN TAB ----
+-- ---- MAIN TAB (БЕЗ ИЗМЕНЕНИЙ) ----
 local yMain = 5
 
 local attractLabel = Instance.new("TextLabel")
@@ -331,10 +355,53 @@ keyBtn.MouseButton1Click:Connect(function()
 end)
 
 yMain = yMain + 42
-
 containers[1].CanvasSize = UDim2.new(0, 0, 0, yMain + 20)
 
--- ---- EXTRAS TAB ----
+-- ---- FARM TAB (НОВАЯ ВКЛАДКА) ----
+local yFarm = 5
+
+local autoBuyLabel = Instance.new("TextLabel")
+autoBuyLabel.Size = UDim2.new(1, 0, 0, 25)
+autoBuyLabel.Position = UDim2.new(0, 0, 0, yFarm)
+autoBuyLabel.BackgroundTransparency = 1
+autoBuyLabel.Text = "Auto Buy Buttons"
+autoBuyLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+autoBuyLabel.TextScaled = true
+autoBuyLabel.Font = Enum.Font.GothamBold
+autoBuyLabel.TextXAlignment = Enum.TextXAlignment.Left
+autoBuyLabel.Parent = containers[2]
+yFarm = yFarm + 30
+
+-- КНОПКА С ПРЕДУПРЕЖДЕНИЕМ
+local autoBuyBtn = Instance.new("TextButton")
+autoBuyBtn.Size = UDim2.new(0.9, 0, 0, 50)
+autoBuyBtn.Position = UDim2.new(0.05, 0, 0, yFarm)
+autoBuyBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+autoBuyBtn.BackgroundTransparency = 0
+autoBuyBtn.BorderSizePixel = 0
+autoBuyBtn.Text = "⚠ PRIVATE SERVER ONLY\nAUTO BUY (OFF)"
+autoBuyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoBuyBtn.TextScaled = true
+autoBuyBtn.Font = Enum.Font.GothamBold
+autoBuyBtn.Parent = containers[2]
+Instance.new("UICorner", autoBuyBtn).CornerRadius = UDim.new(0, 6)
+
+autoBuyBtn.MouseButton1Click:Connect(function()
+    autoBuyEnabled = not autoBuyEnabled
+    if autoBuyEnabled then
+        autoBuyBtn.Text = "⚠ PRIVATE SERVER ONLY\nAUTO BUY (ON)"
+        autoBuyBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+    else
+        autoBuyBtn.Text = "⚠ PRIVATE SERVER ONLY\nAUTO BUY (OFF)"
+        autoBuyBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    end
+    if autoBuyEnabled then startAutoBuy() end
+end)
+
+yFarm = yFarm + 55
+containers[2].CanvasSize = UDim2.new(0, 0, 0, yFarm + 20)
+
+-- ---- EXTRAS TAB (БЕЗ ИЗМЕНЕНИЙ) ----
 local yExtra = 10
 
 local speedLabel = Instance.new("TextLabel")
@@ -346,7 +413,7 @@ speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedLabel.TextScaled = true
 speedLabel.Font = Enum.Font.GothamBold
 speedLabel.TextXAlignment = Enum.TextXAlignment.Left
-speedLabel.Parent = containers[2]
+speedLabel.Parent = containers[3]
 
 local speedInput = Instance.new("TextBox")
 speedInput.Size = UDim2.new(0.25, 0, 0, 28)
@@ -356,7 +423,7 @@ speedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedInput.Text = "100"
 speedInput.TextScaled = true
 speedInput.Font = Enum.Font.GothamBold
-speedInput.Parent = containers[2]
+speedInput.Parent = containers[3]
 Instance.new("UICorner", speedInput).CornerRadius = UDim.new(0, 6)
 speedInput.FocusLost:Connect(function()
     local val = tonumber(speedInput.Text)
@@ -380,7 +447,7 @@ speedBtn.Text = "ENABLE"
 speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedBtn.TextScaled = true
 speedBtn.Font = Enum.Font.GothamBold
-speedBtn.Parent = containers[2]
+speedBtn.Parent = containers[3]
 Instance.new("UICorner", speedBtn).CornerRadius = UDim.new(0, 6)
 
 speedBtn.MouseButton1Click:Connect(function()
@@ -406,7 +473,7 @@ antiAFKBtn.Text = "ANTI-AFK (OFF)"
 antiAFKBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 antiAFKBtn.TextScaled = true
 antiAFKBtn.Font = Enum.Font.GothamBold
-antiAFKBtn.Parent = containers[2]
+antiAFKBtn.Parent = containers[3]
 Instance.new("UICorner", antiAFKBtn).CornerRadius = UDim.new(0, 6)
 
 antiAFKBtn.MouseButton1Click:Connect(function()
@@ -428,7 +495,7 @@ godBtn.Text = "GOD MODE (OFF)"
 godBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 godBtn.TextScaled = true
 godBtn.Font = Enum.Font.GothamBold
-godBtn.Parent = containers[2]
+godBtn.Parent = containers[3]
 Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 6)
 
 godBtn.MouseButton1Click:Connect(function()
@@ -450,7 +517,7 @@ noclipBtn.Text = "NOCLIP (OFF)"
 noclipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 noclipBtn.TextScaled = true
 noclipBtn.Font = Enum.Font.GothamBold
-noclipBtn.Parent = containers[2]
+noclipBtn.Parent = containers[3]
 Instance.new("UICorner", noclipBtn).CornerRadius = UDim.new(0, 6)
 
 noclipBtn.MouseButton1Click:Connect(function()
@@ -489,7 +556,7 @@ jumpBtn.Text = "INF JUMP (OFF)"
 jumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 jumpBtn.TextScaled = true
 jumpBtn.Font = Enum.Font.GothamBold
-jumpBtn.Parent = containers[2]
+jumpBtn.Parent = containers[3]
 Instance.new("UICorner", jumpBtn).CornerRadius = UDim.new(0, 6)
 
 jumpBtn.MouseButton1Click:Connect(function()
@@ -506,10 +573,9 @@ jumpBtn.MouseButton1Click:Connect(function()
 end)
 
 yExtra = yExtra + 42
+containers[3].CanvasSize = UDim2.new(0, 0, 0, yExtra + 20)
 
-containers[2].CanvasSize = UDim2.new(0, 0, 0, yExtra + 20)
-
--- ---- CREDITS TAB ----
+-- ---- CREDITS TAB (БЕЗ ИЗМЕНЕНИЙ) ----
 local yCredits = 20
 
 local creditsTitle = Instance.new("TextLabel")
@@ -521,7 +587,7 @@ creditsTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
 creditsTitle.TextScaled = true
 creditsTitle.Font = Enum.Font.GothamBold
 creditsTitle.TextXAlignment = Enum.TextXAlignment.Center
-creditsTitle.Parent = containers[3]
+creditsTitle.Parent = containers[4]
 yCredits = yCredits + 50
 
 local line1 = Instance.new("TextLabel")
@@ -533,7 +599,7 @@ line1.TextColor3 = Color3.fromRGB(255, 255, 255)
 line1.TextScaled = true
 line1.Font = Enum.Font.GothamBold
 line1.TextXAlignment = Enum.TextXAlignment.Center
-line1.Parent = containers[3]
+line1.Parent = containers[4]
 yCredits = yCredits + 40
 
 local line2 = Instance.new("TextLabel")
@@ -545,7 +611,7 @@ line2.TextColor3 = Color3.fromRGB(255, 255, 255)
 line2.TextScaled = true
 line2.Font = Enum.Font.GothamBold
 line2.TextXAlignment = Enum.TextXAlignment.Center
-line2.Parent = containers[3]
+line2.Parent = containers[4]
 yCredits = yCredits + 40
 
 local thanks = Instance.new("TextLabel")
@@ -557,9 +623,9 @@ thanks.TextColor3 = Color3.fromRGB(150, 150, 200)
 thanks.TextScaled = true
 thanks.Font = Enum.Font.Gotham
 thanks.TextXAlignment = Enum.TextXAlignment.Center
-thanks.Parent = containers[3]
+thanks.Parent = containers[4]
 yCredits = yCredits + 40
 
-containers[3].CanvasSize = UDim2.new(0, 0, 0, yCredits + 20)
+containers[4].CanvasSize = UDim2.new(0, 0, 0, yCredits + 20)
 
-print("zrzocks menu loaded")
+print("zrzocks menu loaded (with Auto Buy)")
