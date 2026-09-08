@@ -669,6 +669,80 @@ collectorBtn.MouseButton1Click:Connect(function()
     if collectorEnabled then startCollector() end
 end)
 yMain = yMain + 30
+
+-- ============================================================
+-- ➤ LEAF TELEPORT (AUTO) — ДОБАВЛЕНАЯ КНОПКА
+-- ============================================================
+local leafTeleportEnabled = false
+local leafLoop = nil
+
+local function teleportToLeaf()
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local folder = workspace:FindFirstChild("FallLeavesFolder")
+    if not folder then return end
+
+    local nearest = nil
+    local minDist = math.huge
+
+    for _, obj in ipairs(folder:GetChildren()) do
+        if obj:IsA("MeshPart") and obj.Name == "MapleLeaf" then
+            local dist = (obj.Position - hrp.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                nearest = obj
+            end
+        end
+    end
+
+    if nearest then
+        hrp.CFrame = CFrame.new(nearest.Position + Vector3.new(0, 2, 0))
+    end
+end
+
+local function startLeafTeleport()
+    spawn(function()
+        while leafTeleportEnabled do
+            teleportToLeaf()
+            wait(0.3)
+        end
+    end)
+end
+
+createLabel(mainContainer, "Leaf Teleport (Auto)", yMain)
+yMain = yMain + 20
+
+local leafBtn = Instance.new("TextButton")
+leafBtn.Size = UDim2.new(0.9, 0, 0, 26)
+leafBtn.Position = UDim2.new(0.05, 0, 0, yMain)
+leafBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+leafBtn.BackgroundTransparency = 0
+leafBtn.BorderSizePixel = 0
+leafBtn.Text = "LEAF TELEPORT (OFF)"
+leafBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+leafBtn.TextScaled = true
+leafBtn.Font = Enum.Font.GothamBold
+leafBtn.Parent = mainContainer
+Instance.new("UICorner", leafBtn).CornerRadius = UDim.new(0, 5)
+
+leafBtn.MouseButton1Click:Connect(function()
+    leafTeleportEnabled = not leafTeleportEnabled
+    if leafTeleportEnabled then
+        leafBtn.Text = "LEAF TELEPORT (ON)"
+        leafBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+        startLeafTeleport()
+    else
+        leafBtn.Text = "LEAF TELEPORT (OFF)"
+        leafBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    end
+end)
+-- ============================================================
+
+yMain = yMain + 30
 mainContainer.CanvasSize = UDim2.new(0, 0, 0, yMain + 20)
 
 local extrasContainer = containers["Extras"]
