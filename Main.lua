@@ -58,7 +58,7 @@ local menu = ZrzocksUI:CreateMenu({
     Name = "Zrzocks Hub",
     Subtitle = "script loader",
     Icon = "⚡",
-    Size = UDim2.fromOffset(600, 450),
+    Size = UDim2.fromOffset(520, 420),
     ToggleKey = Enum.KeyCode.LeftControl,
 })
 
@@ -74,7 +74,7 @@ for _, entry in ipairs(CATALOG) do
             Name = entry.Name,
             Image = entry.Image,
             Tone = entry.Tone,
-            PlaceId = entry.Places[1],   
+            PlaceId = entry.Places[1],
             ButtonText = "Run",
             Callback = function()
                 menu:Notify({
