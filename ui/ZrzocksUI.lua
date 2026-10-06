@@ -6,7 +6,6 @@ function ZrzocksUI:CreateMenu(config)
     self.config = config or {}
     self.cards = {}
     self.tabs = {}
-    self.activeTab = nil
 
     local gui = Instance.new("ScreenGui")
     gui.Name = "ZrzocksHub"
