@@ -5,6 +5,8 @@ function ZrzocksUI:CreateMenu(config)
     local self = setmetatable({}, ZrzocksUI)
     self.config = config or {}
     self.cards = {}
+    self.tabs = {}
+    self.activeTab = nil
 
     local gui = Instance.new("ScreenGui")
     gui.Name = "ZrzocksHub"
@@ -13,8 +15,8 @@ function ZrzocksUI:CreateMenu(config)
     self.gui = gui
 
     local frame = Instance.new("Frame")
-    frame.Size = config.Size or UDim2.fromOffset(520, 420)
-    frame.Position = UDim2.new(0.5, -260, 0.5, -210)
+    frame.Size = config.Size or UDim2.fromOffset(600, 420)
+    frame.Position = UDim2.new(0.5, -300, 0.5, -210)
     frame.BackgroundColor3 = Color3.fromRGB(34, 22, 17)
     frame.BackgroundTransparency = 0.08
     frame.BorderSizePixel = 0
@@ -57,20 +59,47 @@ function ZrzocksUI:CreateMenu(config)
         gui:Destroy()
     end)
 
+    local leftPanel = Instance.new("Frame")
+    leftPanel.Size = UDim2.new(0, 120, 1, -42)
+    leftPanel.Position = UDim2.new(0, 0, 0, 42)
+    leftPanel.BackgroundColor3 = Color3.fromRGB(25, 16, 12)
+    leftPanel.BackgroundTransparency = 0.3
+    leftPanel.BorderSizePixel = 0
+    leftPanel.Parent = frame
+    self.leftPanel = leftPanel
+
+    local leftTitle = Instance.new("TextLabel")
+    leftTitle.Size = UDim2.new(1, -10, 0, 20)
+    leftTitle.Position = UDim2.new(0, 10, 0, 8)
+    leftTitle.BackgroundTransparency = 1
+    leftTitle.Text = "SCRIPTS"
+    leftTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
+    leftTitle.TextScaled = true
+    leftTitle.Font = Enum.Font.GothamBold
+    leftTitle.TextXAlignment = Enum.TextXAlignment.Left
+    leftTitle.Parent = leftPanel
+
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -130, 1, -50)
+    content.Position = UDim2.new(0, 125, 0, 42)
+    content.BackgroundTransparency = 1
+    content.Parent = frame
+    self.content = content
+
     local scroll = Instance.new("ScrollingFrame")
-    scroll.Size = UDim2.new(1, -16, 1, -50)
-    scroll.Position = UDim2.new(0, 8, 0, 42)
+    scroll.Size = UDim2.new(1, 0, 1, 0)
+    scroll.Position = UDim2.new(0, 0, 0, 0)
     scroll.BackgroundTransparency = 1
     scroll.BorderSizePixel = 0
     scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     scroll.ScrollBarThickness = 3
     scroll.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 100)
-    scroll.Parent = frame
+    scroll.Parent = content
     self.scroll = scroll
 
     local grid = Instance.new("UIGridLayout")
-    grid.CellSize = UDim2.new(0, 240, 0, 240)
-    grid.CellPadding = UDim2.new(0, 10, 0, 10)
+    grid.CellSize = UDim2.new(0, 210, 0, 210)
+    grid.CellPadding = UDim2.new(0, 8, 0, 8)
     grid.SortOrder = Enum.SortOrder.LayoutOrder
     grid.Parent = scroll
     self.grid = grid
@@ -94,11 +123,41 @@ function ZrzocksUI:CreateMenu(config)
     return self
 end
 
+function ZrzocksUI:AddTab(tabName)
+    local tab = Instance.new("TextButton")
+    tab.Size = UDim2.new(1, -10, 0, 26)
+    tab.Position = UDim2.new(0, 5, 0, 34 + (#self.tabs * 30))
+    tab.BackgroundColor3 = Color3.fromRGB(25, 16, 12)
+    tab.BackgroundTransparency = 0.8
+    tab.BorderSizePixel = 0
+    tab.Text = "  " .. tabName
+    tab.TextColor3 = Color3.fromRGB(170, 150, 140)
+    tab.TextScaled = true
+    tab.Font = Enum.Font.GothamBold
+    tab.TextXAlignment = Enum.TextXAlignment.Left
+    tab.Parent = self.leftPanel
+    Instance.new("UICorner", tab).CornerRadius = UDim.new(0, 5)
+
+    tab.MouseButton1Click:Connect(function()
+        for _, otherTab in ipairs(self.tabs) do
+            otherTab.tab.BackgroundColor3 = Color3.fromRGB(25, 16, 12)
+            otherTab.tab.BackgroundTransparency = 0.8
+            otherTab.tab.TextColor3 = Color3.fromRGB(170, 150, 140)
+        end
+        tab.BackgroundColor3 = Color3.fromRGB(50, 35, 28)
+        tab.BackgroundTransparency = 0.3
+        tab.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+
+    table.insert(self.tabs, {tab = tab, name = tabName})
+    return tab
+end
+
 function ZrzocksUI:AddCard(cardConfig)
     local scroll = self.scroll
 
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(0, 240, 0, 240)
+    card.Size = UDim2.new(0, 210, 0, 210)
     card.BackgroundColor3 = Color3.fromRGB(28, 18, 14)
     card.BackgroundTransparency = 0.2
     card.BorderSizePixel = 0
@@ -107,8 +166,8 @@ function ZrzocksUI:AddCard(cardConfig)
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
 
     local image = Instance.new("ImageLabel")
-    image.Size = UDim2.new(1, -10, 0, 140)
-    image.Position = UDim2.new(0, 5, 0, 5)
+    image.Size = UDim2.new(1, -8, 0, 110)
+    image.Position = UDim2.new(0, 4, 0, 4)
     image.BackgroundColor3 = cardConfig.Tone or Color3.fromRGB(50, 50, 50)
     image.BackgroundTransparency = 1
     image.Image = cardConfig.Image or ""
@@ -118,8 +177,8 @@ function ZrzocksUI:AddCard(cardConfig)
     Instance.new("UICorner", image).CornerRadius = UDim.new(0, 6)
 
     local name = Instance.new("TextLabel")
-    name.Size = UDim2.new(1, -10, 0, 20)
-    name.Position = UDim2.new(0, 5, 0, 150)
+    name.Size = UDim2.new(1, -8, 0, 18)
+    name.Position = UDim2.new(0, 4, 0, 118)
     name.BackgroundTransparency = 1
     name.Text = cardConfig.Name or "Unknown"
     name.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -129,8 +188,8 @@ function ZrzocksUI:AddCard(cardConfig)
     name.Parent = card
 
     local placeId = Instance.new("TextLabel")
-    placeId.Size = UDim2.new(1, -10, 0, 16)
-    placeId.Position = UDim2.new(0, 5, 0, 172)
+    placeId.Size = UDim2.new(1, -8, 0, 14)
+    placeId.Position = UDim2.new(0, 4, 0, 138)
     placeId.BackgroundTransparency = 1
     placeId.Text = "Place: " .. tostring(cardConfig.PlaceId or "N/A")
     placeId.TextColor3 = Color3.fromRGB(180, 160, 150)
@@ -140,8 +199,8 @@ function ZrzocksUI:AddCard(cardConfig)
     placeId.Parent = card
 
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -10, 0, 28)
-    btn.Position = UDim2.new(0, 5, 1, -33)
+    btn.Size = UDim2.new(1, -8, 0, 26)
+    btn.Position = UDim2.new(0, 4, 1, -30)
     btn.BackgroundColor3 = cardConfig.Tone or Color3.fromRGB(50, 120, 50)
     btn.BorderSizePixel = 0
     btn.Text = cardConfig.ButtonText or "Run"
