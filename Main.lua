@@ -74,6 +74,7 @@ for _, entry in ipairs(CATALOG) do
             Name = entry.Name,
             Image = entry.Image,
             Tone = entry.Tone,
+            PlaceId = entry.Places[1],   
             ButtonText = "Run",
             Callback = function()
                 menu:Notify({
