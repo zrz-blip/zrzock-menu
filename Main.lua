@@ -56,11 +56,12 @@ local ZrzocksUI = loadstring(game:HttpGet(UI_URL), "@ZrzocksUI")()
 
 local menu = ZrzocksUI:CreateMenu({
     Name = "Zrzocks Hub",
-    Subtitle = "script loader",
     Icon = "⚡",
-    Size = UDim2.fromOffset(520, 420),
+    Size = UDim2.fromOffset(600, 420),
     ToggleKey = Enum.KeyCode.LeftControl,
 })
+
+menu:AddTab("Scripts")
 
 menu:Notify({
     Title = "Zrzocks Hub",
