@@ -13,7 +13,7 @@ local CATALOG = {
         Script = "scripts/InfiniteTowerTycoon.lua",
         Listed = true,
         Tone = Color3.fromRGB(255, 180, 80),
-        Image = "rbxassetid://137848013690251",
+        Image = "rbxassetid://106109636799806",
     },
 }
 
