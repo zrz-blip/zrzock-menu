@@ -87,7 +87,7 @@ end
 
 function ZrzocksUI:AddCard(cardConfig)
     local scroll = self.scroll
-    local cardHeight = 90
+    local cardHeight = 240
     local cardCount = #self.cards
     local yPos = cardCount * (cardHeight + 10)
 
@@ -97,23 +97,23 @@ function ZrzocksUI:AddCard(cardConfig)
     card.BackgroundColor3 = Color3.fromRGB(28, 18, 14)
     card.BackgroundTransparency = 0.2
     card.BorderSizePixel = 0
+    card.ClipsDescendants = true
     card.Parent = scroll
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
 
-    local icon = Instance.new("TextLabel")
-    icon.Size = UDim2.new(0, 60, 0, 60)
-    icon.Position = UDim2.new(0, 15, 0.5, -30)
-    icon.BackgroundColor3 = cardConfig.Tone or Color3.fromRGB(100, 100, 100)
-    icon.BackgroundTransparency = 0.3
-    icon.Text = cardConfig.Icon or "🎮"
-    icon.TextScaled = true
-    icon.Font = Enum.Font.GothamBold
-    icon.Parent = card
-    Instance.new("UICorner", icon).CornerRadius = UDim.new(0, 8)
+    local image = Instance.new("ImageLabel")
+    image.Size = UDim2.new(1, 0, 1, -50)
+    image.Position = UDim2.new(0, 0, 0, 0)
+    image.BackgroundColor3 = cardConfig.Tone or Color3.fromRGB(50, 50, 50)
+    image.BackgroundTransparency = 1
+    image.Image = cardConfig.Image or ""
+    image.ScaleType = Enum.ScaleType.Crop
+    image.BorderSizePixel = 0
+    image.Parent = card
 
     local name = Instance.new("TextLabel")
-    name.Size = UDim2.new(1, -180, 0, 22)
-    name.Position = UDim2.new(0, 90, 0, 15)
+    name.Size = UDim2.new(1, -20, 0, 22)
+    name.Position = UDim2.new(0, 10, 1, -46)
     name.BackgroundTransparency = 1
     name.Text = cardConfig.Name or "Unknown"
     name.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -122,20 +122,9 @@ function ZrzocksUI:AddCard(cardConfig)
     name.TextXAlignment = Enum.TextXAlignment.Left
     name.Parent = card
 
-    local desc = Instance.new("TextLabel")
-    desc.Size = UDim2.new(1, -180, 0, 18)
-    desc.Position = UDim2.new(0, 90, 0, 40)
-    desc.BackgroundTransparency = 1
-    desc.Text = cardConfig.Description or ""
-    desc.TextColor3 = Color3.fromRGB(180, 160, 150)
-    desc.TextScaled = true
-    desc.Font = Enum.Font.Gotham
-    desc.TextXAlignment = Enum.TextXAlignment.Left
-    desc.Parent = card
-
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 80, 0, 30)
-    btn.Position = UDim2.new(1, -95, 0.5, -15)
+    btn.Size = UDim2.new(1, -20, 0, 32)
+    btn.Position = UDim2.new(0, 10, 1, -38)
     btn.BackgroundColor3 = cardConfig.Tone or Color3.fromRGB(50, 120, 50)
     btn.BorderSizePixel = 0
     btn.Text = cardConfig.ButtonText or "Run"
