@@ -13,6 +13,7 @@ local CATALOG = {
         Script = "scripts/InfiniteTowerTycoon.lua",
         Listed = true,
         Tone = Color3.fromRGB(255, 180, 80),
+        Image = "rbxassetid://137848013690251",
     },
 }
 
@@ -71,8 +72,7 @@ for _, entry in ipairs(CATALOG) do
     if entry.Listed then
         menu:AddCard({
             Name = entry.Name,
-            Icon = "🎮",
-            Description = "Place ID: " .. tostring(entry.Places[1]),
+            Image = entry.Image,
             Tone = entry.Tone,
             ButtonText = "Run",
             Callback = function()
