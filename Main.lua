@@ -41,15 +41,6 @@ local function launch(entry)
     return ok, result
 end
 
-local supported = matchPlace(game.PlaceId, game.GameId)
-
-if supported then
-    local ok, err = launch(supported)
-    if not ok then
-        warn("Zrzocks Hub: " .. tostring(err))
-    end
-    return
-end
 
 local UI_URL = BASE_URL .. "ui/ZrzocksUI.lua"
 local ZrzocksUI = loadstring(game:HttpGet(UI_URL), "@ZrzocksUI")()
