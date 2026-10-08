@@ -1040,9 +1040,9 @@ local function addCredit(text, y, color)
     return lbl
 end
 
-addCredit("Idea Maker: zrzockspq", yCredits, Color3.fromRGB(255, 255, 255))
+addCredit("Idea Maker: zrzock", yCredits, Color3.fromRGB(255, 255, 255))
 yCredits = yCredits + 26
-addCredit("Creator: zrzockspq", yCredits, Color3.fromRGB(255, 255, 255))
+addCredit("Creator: zrzock", yCredits, Color3.fromRGB(255, 255, 255))
 yCredits = yCredits + 26
 addCredit("Thanks for using!", yCredits, Color3.fromRGB(150, 150, 200))
 yCredits = yCredits + 26
