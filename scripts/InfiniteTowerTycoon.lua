@@ -760,4 +760,297 @@ speedInput.Size = UDim2.new(0.15, 0, 0, 18)
 speedInput.Position = UDim2.new(0.4, 0, 0, yExtra)
 speedInput.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
 speedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedInput
+speedInput.Text = "100"
+speedInput.TextScaled = true
+speedInput.Font = Enum.Font.GothamBold
+speedInput.Parent = extrasContainer
+Instance.new("UICorner", speedInput).CornerRadius = UDim.new(0, 4)
+speedInput.FocusLost:Connect(function()
+    local val = tonumber(speedInput.Text)
+    if val and val > 0 then speedValue = val else speedInput.Text = tostring(speedValue) end
+end)
+
+yExtra = yExtra + 22
+
+local speedBtn = Instance.new("TextButton")
+speedBtn.Size = UDim2.new(0.9, 0, 0, 26)
+speedBtn.Position = UDim2.new(0.05, 0, 0, yExtra)
+speedBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+speedBtn.BackgroundTransparency = 0
+speedBtn.BorderSizePixel = 0
+speedBtn.Text = "ENABLE"
+speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedBtn.TextScaled = true
+speedBtn.Font = Enum.Font.GothamBold
+speedBtn.Parent = extrasContainer
+Instance.new("UICorner", speedBtn).CornerRadius = UDim.new(0, 5)
+speedBtn.MouseButton1Click:Connect(function()
+    speedEnabled = not speedEnabled
+    speedBtn.Text = speedEnabled and "DISABLE" or "ENABLE"
+    speedBtn.BackgroundColor3 = speedEnabled and Color3.fromRGB(200, 50, 50) or Color3.fromRGB(30, 30, 50)
+    if speedEnabled then
+        pcall(function() player.Character.Humanoid.WalkSpeed = speedValue end)
+    else
+        pcall(function() player.Character.Humanoid.WalkSpeed = 16 end)
+    end
+end)
+yExtra = yExtra + 30
+
+local flySpeedLabel = Instance.new("TextLabel")
+flySpeedLabel.Size = UDim2.new(0.35, 0, 0, 16)
+flySpeedLabel.Position = UDim2.new(0.05, 0, 0, yExtra)
+flySpeedLabel.BackgroundTransparency = 1
+flySpeedLabel.Text = "Fly Speed:"
+flySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+flySpeedLabel.TextScaled = true
+flySpeedLabel.Font = Enum.Font.GothamBold
+flySpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+flySpeedLabel.Parent = extrasContainer
+
+local flySpeedInput = Instance.new("TextBox")
+flySpeedInput.Size = UDim2.new(0.15, 0, 0, 18)
+flySpeedInput.Position = UDim2.new(0.4, 0, 0, yExtra)
+flySpeedInput.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+flySpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+flySpeedInput.Text = "50"
+flySpeedInput.TextScaled = true
+flySpeedInput.Font = Enum.Font.GothamBold
+flySpeedInput.Parent = extrasContainer
+Instance.new("UICorner", flySpeedInput).CornerRadius = UDim.new(0, 4)
+flySpeedInput.FocusLost:Connect(function()
+    local val = tonumber(flySpeedInput.Text)
+    if val and val > 0 then flySpeed = val else flySpeedInput.Text = tostring(flySpeed) end
+end)
+
+yExtra = yExtra + 22
+
+local flyBtn = Instance.new("TextButton")
+flyBtn.Size = UDim2.new(0.9, 0, 0, 26)
+flyBtn.Position = UDim2.new(0.05, 0, 0, yExtra)
+flyBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 90)
+flyBtn.BackgroundTransparency = 0
+flyBtn.BorderSizePixel = 0
+flyBtn.Text = "FLY (OFF)"
+flyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyBtn.TextScaled = true
+flyBtn.Font = Enum.Font.GothamBold
+flyBtn.Parent = extrasContainer
+Instance.new("UICorner", flyBtn).CornerRadius = UDim.new(0, 5)
+flyBtn.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    flyBtn.Text = flyEnabled and "FLY (ON)" or "FLY (OFF)"
+    flyBtn.BackgroundColor3 = flyEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(40, 40, 90)
+    toggleFly()
+end)
+yExtra = yExtra + 30
+
+local antiBtn = Instance.new("TextButton")
+antiBtn.Size = UDim2.new(0.9, 0, 0, 26)
+antiBtn.Position = UDim2.new(0.05, 0, 0, yExtra)
+antiBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+antiBtn.BackgroundTransparency = 0
+antiBtn.BorderSizePixel = 0
+antiBtn.Text = "ANTI-AFK (OFF)"
+antiBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+antiBtn.TextScaled = true
+antiBtn.Font = Enum.Font.GothamBold
+antiBtn.Parent = extrasContainer
+Instance.new("UICorner", antiBtn).CornerRadius = UDim.new(0, 5)
+antiBtn.MouseButton1Click:Connect(function()
+    antiAFKEnabled = not antiAFKEnabled
+    antiBtn.Text = antiAFKEnabled and "ANTI-AFK (ON)" or "ANTI-AFK (OFF)"
+    antiBtn.BackgroundColor3 = antiAFKEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
+    if antiAFKEnabled then startAntiAFK() end
+end)
+yExtra = yExtra + 30
+
+local godBtn = Instance.new("TextButton")
+godBtn.Size = UDim2.new(0.9, 0, 0, 26)
+godBtn.Position = UDim2.new(0.05, 0, 0, yExtra)
+godBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+godBtn.BackgroundTransparency = 0
+godBtn.BorderSizePixel = 0
+godBtn.Text = "GOD MODE (OFF)"
+godBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+godBtn.TextScaled = true
+godBtn.Font = Enum.Font.GothamBold
+godBtn.Parent = extrasContainer
+Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 5)
+godBtn.MouseButton1Click:Connect(function()
+    godModeEnabled = not godModeEnabled
+    godBtn.Text = godModeEnabled and "GOD MODE (ON)" or "GOD MODE (OFF)"
+    godBtn.BackgroundColor3 = godModeEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
+    if godModeEnabled then startGodMode() end
+end)
+yExtra = yExtra + 30
+
+local noclipBtn = Instance.new("TextButton")
+noclipBtn.Size = UDim2.new(0.9, 0, 0, 26)
+noclipBtn.Position = UDim2.new(0.05, 0, 0, yExtra)
+noclipBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+noclipBtn.BackgroundTransparency = 0
+noclipBtn.BorderSizePixel = 0
+noclipBtn.Text = "NOCLIP (OFF)"
+noclipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipBtn.TextScaled = true
+noclipBtn.Font = Enum.Font.GothamBold
+noclipBtn.Parent = extrasContainer
+Instance.new("UICorner", noclipBtn).CornerRadius = UDim.new(0, 5)
+noclipBtn.MouseButton1Click:Connect(function()
+    noclipEnabled = not noclipEnabled
+    noclipBtn.Text = noclipEnabled and "NOCLIP (ON)" or "NOCLIP (OFF)"
+    noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
+    if noclipEnabled then
+        spawn(function()
+            while noclipEnabled do
+                wait(0.1)
+                if player.Character then
+                    for _, part in pairs(player.Character:GetChildren()) do
+                        if part:IsA("BasePart") then part.CanCollide = false end
+                    end
+                end
+            end
+        end)
+    else
+        if player.Character then
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then part.CanCollide = true end
+            end
+        end
+    end
+end)
+yExtra = yExtra + 30
+
+local jumpBtn = Instance.new("TextButton")
+jumpBtn.Size = UDim2.new(0.9, 0, 0, 26)
+jumpBtn.Position = UDim2.new(0.05, 0, 0, yExtra)
+jumpBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+jumpBtn.BackgroundTransparency = 0
+jumpBtn.BorderSizePixel = 0
+jumpBtn.Text = "INF JUMP (OFF)"
+jumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpBtn.TextScaled = true
+jumpBtn.Font = Enum.Font.GothamBold
+jumpBtn.Parent = extrasContainer
+Instance.new("UICorner", jumpBtn).CornerRadius = UDim.new(0, 5)
+jumpBtn.MouseButton1Click:Connect(function()
+    jumpEnabled = not jumpEnabled
+    jumpBtn.Text = jumpEnabled and "INF JUMP (ON)" or "INF JUMP (OFF)"
+    jumpBtn.BackgroundColor3 = jumpEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
+    if jumpEnabled then
+        UserInputService.JumpRequest:Connect(function()
+            if jumpEnabled and player.Character then
+                pcall(function() player.Character.Humanoid:ChangeState("Jumping") end)
+            end
+        end)
+    end
+end)
+yExtra = yExtra + 30
+extrasContainer.CanvasSize = UDim2.new(0, 0, 0, yExtra + 20)
+
+local guideContainer = containers["Guide"]
+local yGuide = 5
+
+createGuideTitle(guideContainer, "■ Crate Attractor", yGuide)
+yGuide = yGuide + 22
+createGuideText(guideContainer, "• You need stay on grass, if you stay very high then it dont collect any crates", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• Good combine with auto collector bc you teleport to collect from cash giver and you also collect crates", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• Works fine but not perfect", yGuide, Color3.fromRGB(255, 200, 100))
+yGuide = yGuide + 22
+
+createGuideTitle(guideContainer, "■ Auto Buy", yGuide)
+yGuide = yGuide + 22
+createGuideText(guideContainer, "• Some bugs with this button, you need be close to buttons, or it just dont work", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• Game auto remove from allbuttons file buttons that dont in your close enough distance", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• I cant fix it, its game mechanic", yGuide, Color3.fromRGB(255, 200, 100))
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• High reccomend use it in private server because it work on every zone buttons", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• I cant just do it only on your zone sorry", yGuide, Color3.fromRGB(255, 150, 150))
+yGuide = yGuide + 22
+
+createGuideTitle(guideContainer, "■ Auto Collector", yGuide)
+yGuide = yGuide + 22
+createGuideText(guideContainer, "• Reccomend use in private server because it works on every zones in game", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• Again problem i cant just place only your, it was hard to make", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• But i think i try do it later", yGuide, Color3.fromRGB(255, 200, 100))
+yGuide = yGuide + 22
+
+createGuideTitle(guideContainer, "■ Speed and Fly", yGuide)
+yGuide = yGuide + 22
+createGuideText(guideContainer, "• You can change speed number and fly speed", yGuide)
+yGuide = yGuide + 18
+createGuideText(guideContainer, "• Flying looks like strange bc maked by me", yGuide, Color3.fromRGB(255, 200, 100))
+yGuide = yGuide + 22
+
+createGuideTitle(guideContainer, "■ God Mode", yGuide)
+yGuide = yGuide + 22
+createGuideText(guideContainer, "• Dont work, just visual", yGuide, Color3.fromRGB(255, 150, 150))
+yGuide = yGuide + 22
+
+createGuideTitle(guideContainer, "■ Combat", yGuide)
+yGuide = yGuide + 22
+createGuideText(guideContainer, "• Coming Soon...", yGuide, Color3.fromRGB(255, 200, 100))
+yGuide = yGuide + 22
+
+guideContainer.CanvasSize = UDim2.new(0, 0, 0, yGuide + 20)
+
+local combatContainer = containers["Combat"]
+local placeholder = Instance.new("TextLabel")
+placeholder.Size = UDim2.new(1, 0, 1, 0)
+placeholder.BackgroundTransparency = 1
+placeholder.Text = "⚔️ Combat Tab\n\nComing Soon..."
+placeholder.TextColor3 = Color3.fromRGB(200, 180, 170)
+placeholder.TextScaled = true
+placeholder.Font = Enum.Font.GothamBold
+placeholder.Parent = combatContainer
+
+local creditsContainer = containers["Credits"]
+local yCredits = 12
+
+local creditsTitle = Instance.new("TextLabel")
+creditsTitle.Size = UDim2.new(1, 0, 0, 30)
+creditsTitle.Position = UDim2.new(0, 0, 0, yCredits)
+creditsTitle.BackgroundTransparency = 1
+creditsTitle.Text = "CREDITS"
+creditsTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
+creditsTitle.TextScaled = true
+creditsTitle.Font = Enum.Font.GothamBold
+creditsTitle.TextXAlignment = Enum.TextXAlignment.Center
+creditsTitle.Parent = creditsContainer
+yCredits = yCredits + 35
+
+local function addCredit(text, y, color)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 22)
+    lbl.Position = UDim2.new(0, 0, 0, y)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = color or Color3.fromRGB(255, 255, 255)
+    lbl.TextScaled = true
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Center
+    lbl.Parent = creditsContainer
+    return lbl
+end
+
+addCredit("Idea Maker: zrzockspq", yCredits, Color3.fromRGB(255, 255, 255))
+yCredits = yCredits + 26
+addCredit("Creator: zrzockspq", yCredits, Color3.fromRGB(255, 255, 255))
+yCredits = yCredits + 26
+addCredit("Thanks for using!", yCredits, Color3.fromRGB(150, 150, 200))
+yCredits = yCredits + 26
+creditsContainer.CanvasSize = UDim2.new(0, 0, 0, yCredits + 20)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightAlt then
+        gui.Enabled = not gui.Enabled
+    end
+end)
