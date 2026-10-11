@@ -145,22 +145,29 @@ local function createESP(player)
     end
 end
 
-local function updateESP()
-    if not espEnabled then return end
+local function enableESP()
+    espEnabled = true
     for _, player in ipairs(game.Players:GetPlayers()) do
         createESP(player)
     end
 end
 
-local function clearESP()
+local function disableESP()
+    espEnabled = false
     ESPFolder:ClearAllChildren()
 end
 
 game:GetService("Players").PlayerAdded:Connect(function(player)
+    if espEnabled then createESP(player) end
     player.CharacterAdded:Connect(function()
         task.wait(1)
         if espEnabled then createESP(player) end
     end)
+end)
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+    local holder = ESPFolder:FindFirstChild(player.Name)
+    if holder then holder:Destroy() end
 end)
 
 local yMisc = 5
@@ -216,10 +223,15 @@ addLabel("ESP", yMisc)
 yMisc = yMisc + 20
 
 local espBtn = addBtn("ESP (OFF)", yMisc, function()
-    espEnabled = not espEnabled
-    espBtn.Text = espEnabled and "ESP (ON)" or "ESP (OFF)"
-    espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
-    if espEnabled then updateESP() else clearESP() end
+    if espEnabled then
+        disableESP()
+        espBtn.Text = "ESP (OFF)"
+        espBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    else
+        enableESP()
+        espBtn.Text = "ESP (ON)"
+        espBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+    end
 end)
 yMisc = yMisc + 30
 
@@ -271,10 +283,3 @@ end)
 yMisc = yMisc + 30
 
 miscTab.CanvasSize = UDim2.new(0, 0, 0, yMisc + 20)
-
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        if espEnabled then updateESP() end
-    end
-end)
