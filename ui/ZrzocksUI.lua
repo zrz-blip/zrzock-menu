@@ -6,6 +6,7 @@ function ZrzocksUI:CreateMenu(config)
     self.config = config or {}
     self.cards = {}
     self.tabs = {}
+    self.containers = {}
 
     local gui = Instance.new("ScreenGui")
     gui.Name = "ZrzocksHub"
@@ -67,41 +68,12 @@ function ZrzocksUI:CreateMenu(config)
     leftPanel.Parent = frame
     self.leftPanel = leftPanel
 
-    local leftTitle = Instance.new("TextLabel")
-    leftTitle.Size = UDim2.new(1, -10, 0, 20)
-    leftTitle.Position = UDim2.new(0, 10, 0, 8)
-    leftTitle.BackgroundTransparency = 1
-    leftTitle.Text = "SCRIPTS"
-    leftTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
-    leftTitle.TextScaled = true
-    leftTitle.Font = Enum.Font.GothamBold
-    leftTitle.TextXAlignment = Enum.TextXAlignment.Left
-    leftTitle.Parent = leftPanel
-
     local content = Instance.new("Frame")
     content.Size = UDim2.new(1, -130, 1, -50)
     content.Position = UDim2.new(0, 125, 0, 42)
     content.BackgroundTransparency = 1
     content.Parent = frame
     self.content = content
-
-    local scroll = Instance.new("ScrollingFrame")
-    scroll.Size = UDim2.new(1, 0, 1, 0)
-    scroll.Position = UDim2.new(0, 0, 0, 0)
-    scroll.BackgroundTransparency = 1
-    scroll.BorderSizePixel = 0
-    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    scroll.ScrollBarThickness = 3
-    scroll.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 100)
-    scroll.Parent = content
-    self.scroll = scroll
-
-    local grid = Instance.new("UIGridLayout")
-    grid.CellSize = UDim2.new(0, 210, 0, 210)
-    grid.CellPadding = UDim2.new(0, 8, 0, 8)
-    grid.SortOrder = Enum.SortOrder.LayoutOrder
-    grid.Parent = scroll
-    self.grid = grid
 
     local notifContainer = Instance.new("Frame")
     notifContainer.Size = UDim2.new(0, 280, 1, 0)
@@ -125,7 +97,7 @@ end
 function ZrzocksUI:AddTab(tabName)
     local tab = Instance.new("TextButton")
     tab.Size = UDim2.new(1, -10, 0, 26)
-    tab.Position = UDim2.new(0, 5, 0, 34 + (#self.tabs * 30))
+    tab.Position = UDim2.new(0, 5, 0, 8 + (#self.tabs * 30))
     tab.BackgroundColor3 = Color3.fromRGB(25, 16, 12)
     tab.BackgroundTransparency = 0.8
     tab.BorderSizePixel = 0
@@ -137,26 +109,57 @@ function ZrzocksUI:AddTab(tabName)
     tab.Parent = self.leftPanel
     Instance.new("UICorner", tab).CornerRadius = UDim.new(0, 5)
 
+    local container = Instance.new("ScrollingFrame")
+    container.Size = UDim2.new(1, 0, 1, 0)
+    container.BackgroundTransparency = 1
+    container.BorderSizePixel = 0
+    container.CanvasSize = UDim2.new(0, 0, 0, 0)
+    container.ScrollBarThickness = 3
+    container.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 100)
+    container.Visible = false
+    container.Parent = self.content
+    self.containers[tabName] = container
+
     tab.MouseButton1Click:Connect(function()
         for _, otherTab in ipairs(self.tabs) do
             otherTab.tab.BackgroundColor3 = Color3.fromRGB(25, 16, 12)
             otherTab.tab.BackgroundTransparency = 0.8
             otherTab.tab.TextColor3 = Color3.fromRGB(170, 150, 140)
+            self.containers[otherTab.name].Visible = false
         end
         tab.BackgroundColor3 = Color3.fromRGB(50, 35, 28)
         tab.BackgroundTransparency = 0.3
         tab.TextColor3 = Color3.fromRGB(255, 255, 255)
+        container.Visible = true
     end)
 
     table.insert(self.tabs, {tab = tab, name = tabName})
-    return tab
+
+    if #self.tabs == 1 then
+        tab.BackgroundColor3 = Color3.fromRGB(50, 35, 28)
+        tab.BackgroundTransparency = 0.3
+        tab.TextColor3 = Color3.fromRGB(255, 255, 255)
+        container.Visible = true
+    end
+
+    return container
 end
 
 function ZrzocksUI:AddCard(cardConfig)
-    local scroll = self.scroll
+    local scroll = self.containers["Scripts"]
+    if not scroll then return end
+
+    local grid = scroll:FindFirstChildOfClass("UIGridLayout")
+    if not grid then
+        grid = Instance.new("UIGridLayout")
+        grid.CellSize = UDim2.new(0, 220, 0, 200)
+        grid.CellPadding = UDim2.new(0, 8, 0, 8)
+        grid.SortOrder = Enum.SortOrder.LayoutOrder
+        grid.Parent = scroll
+    end
 
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(0, 210, 0, 210)
+    card.Size = UDim2.new(0, 220, 0, 200)
     card.BackgroundColor3 = Color3.fromRGB(28, 18, 14)
     card.BackgroundTransparency = 0.2
     card.BorderSizePixel = 0
@@ -214,8 +217,68 @@ function ZrzocksUI:AddCard(cardConfig)
             cardConfig.Callback()
         end
     end)
+end
 
-    table.insert(self.cards, card)
+function ZrzocksUI:AddButton(tabName, config)
+    local container = self.containers[tabName]
+    if not container then return end
+
+    local btn = Instance.new("TextButton")
+    btn.Size = config.Size or UDim2.new(0.9, 0, 0, 26)
+    btn.Position = config.Position or UDim2.new(0.05, 0, 0, config.Y or 0)
+    btn.BackgroundColor3 = config.Color or Color3.fromRGB(30, 30, 50)
+    btn.BorderSizePixel = 0
+    btn.Text = config.Text or "Button"
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = container
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+
+    if config.Callback then
+        btn.MouseButton1Click:Connect(config.Callback)
+    end
+    return btn
+end
+
+function ZrzocksUI:AddLabel(tabName, text, y)
+    local container = self.containers[tabName]
+    if not container then return end
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 16)
+    lbl.Position = UDim2.new(0, 0, 0, y)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(255, 200, 100)
+    lbl.TextScaled = true
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = container
+    return lbl
+end
+
+function ZrzocksUI:AddTextBox(tabName, config)
+    local container = self.containers[tabName]
+    if not container then return end
+
+    local box = Instance.new("TextBox")
+    box.Size = config.Size or UDim2.new(0.9, 0, 0, 22)
+    box.Position = config.Position or UDim2.new(0.05, 0, 0, config.Y or 0)
+    box.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    box.Text = config.Text or ""
+    box.TextScaled = true
+    box.Font = Enum.Font.GothamBold
+    box.Parent = container
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 4)
+
+    if config.Callback then
+        box.FocusLost:Connect(function()
+            config.Callback(box.Text)
+        end)
+    end
+    return box
 end
 
 function ZrzocksUI:Notify(config)
