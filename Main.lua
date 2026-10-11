@@ -92,7 +92,6 @@ ESPFolder.Parent = game:GetService("CoreGui")
 
 local espEnabled = false
 local espShowName = true
-local espBoxSize = 3
 local espColor = Color3.fromRGB(255, 0, 0)
 
 local function createESP(player)
@@ -116,35 +115,28 @@ local function createESP(player)
     highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     highlight.Parent = holder
 
-    local box = Instance.new("BoxHandleAdornment")
-    box.Name = "Box"
-    box.Size = Vector3.new(espBoxSize, espBoxSize * 2, espBoxSize)
-    box.Color3 = espColor
-    box.Transparency = 0.5
-    box.AlwaysOnTop = true
-    box.ZIndex = 0
-    box.Adornee = player.Character
-    box.Parent = holder
-
     if espShowName then
-        local nameTag = Instance.new("BillboardGui")
-        nameTag.Name = "NameTag"
-        nameTag.Size = UDim2.new(0, 200, 0, 50)
-        nameTag.AlwaysOnTop = true
-        nameTag.StudsOffset = Vector3.new(0, espBoxSize + 1, 0)
-        nameTag.Adornee = player.Character:FindFirstChild("Head")
-        nameTag.Parent = holder
+        local head = player.Character:FindFirstChild("Head")
+        if head then
+            local nameTag = Instance.new("BillboardGui")
+            nameTag.Name = "NameTag"
+            nameTag.Size = UDim2.new(0, 200, 0, 50)
+            nameTag.AlwaysOnTop = true
+            nameTag.StudsOffset = Vector3.new(0, 3, 0)
+            nameTag.Adornee = head
+            nameTag.Parent = holder
 
-        local tag = Instance.new("TextLabel")
-        tag.BackgroundTransparency = 1
-        tag.Size = UDim2.new(1, 0, 0, 20)
-        tag.TextSize = 14
-        tag.TextColor3 = espColor
-        tag.TextStrokeColor3 = Color3.new(0, 0, 0)
-        tag.TextStrokeTransparency = 0.4
-        tag.Text = player.Name
-        tag.Font = Enum.Font.SourceSansBold
-        tag.Parent = nameTag
+            local tag = Instance.new("TextLabel")
+            tag.BackgroundTransparency = 1
+            tag.Size = UDim2.new(1, 0, 0, 20)
+            tag.TextSize = 14
+            tag.TextColor3 = espColor
+            tag.TextStrokeColor3 = Color3.new(0, 0, 0)
+            tag.TextStrokeTransparency = 0.4
+            tag.Text = player.Name
+            tag.Font = Enum.Font.SourceSansBold
+            tag.Parent = nameTag
+        end
     end
 end
 
@@ -158,23 +150,48 @@ end
 local function clearESP()
     ESPFolder:ClearAllChildren()
 end
-yMisc = yMisc + 30
 
-menu:AddLabel("Misc", "Box Size", yMisc)
+game:GetService("Players").PlayerAdded:Connect(function(player)
+    if espEnabled then
+        player.CharacterAdded:Connect(function()
+            task.wait(1)
+            createESP(player)
+        end)
+    end
+end)
+
+local yMisc = 5
+
+menu:AddLabel("Misc", "ESP", yMisc)
 yMisc = yMisc + 20
 
-menu:AddTextBox("Misc", {
+local espBtn = menu:AddButton("Misc", {
     Y = yMisc,
-    Text = "3",
-    Callback = function(val)
-        local num = tonumber(val)
-        if num and num > 0 then
-            espBoxSize = num
-            if espEnabled then updateESP() end
-        end
+    Text = "ESP (OFF)",
+    Callback = function()
+        espEnabled = not espEnabled
+        espBtn.Text = espEnabled and "ESP (ON)" or "ESP (OFF)"
+        espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
+        if espEnabled then updateESP() else clearESP() end
     end,
 })
-yMisc = yMisc + 26
+yMisc = yMisc + 30
+
+menu:AddLabel("Misc", "Show Name", yMisc)
+yMisc = yMisc + 20
+
+local nameBtn = menu:AddButton("Misc", {
+    Y = yMisc,
+    Text = "NAME (ON)",
+    Color = Color3.fromRGB(50, 120, 50),
+    Callback = function()
+        espShowName = not espShowName
+        nameBtn.Text = espShowName and "NAME (ON)" or "NAME (OFF)"
+        nameBtn.BackgroundColor3 = espShowName and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 80)
+        if espEnabled then updateESP() end
+    end,
+})
+yMisc = yMisc + 30
 
 menu:AddLabel("Misc", "Speed", yMisc)
 yMisc = yMisc + 20
