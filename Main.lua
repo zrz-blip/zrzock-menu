@@ -106,12 +106,23 @@ local function createESP(player)
     end
     holder:ClearAllChildren()
 
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "Highlight"
+    highlight.Adornee = player.Character
+    highlight.FillColor = espColor
+    highlight.OutlineColor = espColor
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = holder
+
     local box = Instance.new("BoxHandleAdornment")
     box.Name = "Box"
     box.Size = Vector3.new(espBoxSize, espBoxSize * 2, espBoxSize)
     box.Color3 = espColor
     box.Transparency = 0.5
     box.AlwaysOnTop = true
+    box.ZIndex = 0
     box.Adornee = player.Character
     box.Parent = holder
 
@@ -147,38 +158,6 @@ end
 local function clearESP()
     ESPFolder:ClearAllChildren()
 end
-
-local yMisc = 5
-
-menu:AddLabel("Misc", "ESP", yMisc)
-yMisc = yMisc + 20
-
-local espBtn = menu:AddButton("Misc", {
-    Y = yMisc,
-    Text = "ESP (OFF)",
-    Callback = function()
-        espEnabled = not espEnabled
-        espBtn.Text = espEnabled and "ESP (ON)" or "ESP (OFF)"
-        espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
-        if espEnabled then updateESP() else clearESP() end
-    end,
-})
-yMisc = yMisc + 30
-
-menu:AddLabel("Misc", "Show Name", yMisc)
-yMisc = yMisc + 20
-
-local nameBtn = menu:AddButton("Misc", {
-    Y = yMisc,
-    Text = "NAME (ON)",
-    Color = Color3.fromRGB(50, 120, 50),
-    Callback = function()
-        espShowName = not espShowName
-        nameBtn.Text = espShowName and "NAME (ON)" or "NAME (OFF)"
-        nameBtn.BackgroundColor3 = espShowName and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 80)
-        if espEnabled then updateESP() end
-    end,
-})
 yMisc = yMisc + 30
 
 menu:AddLabel("Misc", "Box Size", yMisc)
