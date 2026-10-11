@@ -47,14 +47,18 @@ local menu = ZrzocksUI:CreateMenu({
     ToggleKey = Enum.KeyCode.LeftControl,
 })
 
-menu:AddTab("Scripts")
-menu:AddTab("Misc")
+local scriptsTab = menu:AddTab("Scripts")
+local miscTab = menu:AddTab("Misc")
 
 menu:Notify({
     Title = "Zrzocks Hub",
     Description = "Welcome!",
     Duration = 3,
 })
+
+-- ============================================
+-- SCRIPTS TAB
+-- ============================================
 
 for _, entry in ipairs(CATALOG) do
     if entry.Listed then
@@ -86,13 +90,16 @@ for _, entry in ipairs(CATALOG) do
     end
 end
 
+-- ============================================
+-- MISC TAB
+-- ============================================
+
+local espEnabled = false
+local espColor = Color3.fromRGB(255, 0, 0)
+
 local ESPFolder = Instance.new("Folder")
 ESPFolder.Name = "ESP"
 ESPFolder.Parent = game:GetService("CoreGui")
-
-local espEnabled = false
-local espShowName = true
-local espColor = Color3.fromRGB(255, 0, 0)
 
 local function createESP(player)
     if player == game.Players.LocalPlayer then return end
@@ -115,28 +122,26 @@ local function createESP(player)
     highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     highlight.Parent = holder
 
-    if espShowName then
-        local head = player.Character:FindFirstChild("Head")
-        if head then
-            local nameTag = Instance.new("BillboardGui")
-            nameTag.Name = "NameTag"
-            nameTag.Size = UDim2.new(0, 200, 0, 50)
-            nameTag.AlwaysOnTop = true
-            nameTag.StudsOffset = Vector3.new(0, 3, 0)
-            nameTag.Adornee = head
-            nameTag.Parent = holder
+    local head = player.Character:FindFirstChild("Head")
+    if head then
+        local nameTag = Instance.new("BillboardGui")
+        nameTag.Name = "NameTag"
+        nameTag.Size = UDim2.new(0, 200, 0, 50)
+        nameTag.AlwaysOnTop = true
+        nameTag.StudsOffset = Vector3.new(0, 3, 0)
+        nameTag.Adornee = head
+        nameTag.Parent = holder
 
-            local tag = Instance.new("TextLabel")
-            tag.BackgroundTransparency = 1
-            tag.Size = UDim2.new(1, 0, 0, 20)
-            tag.TextSize = 14
-            tag.TextColor3 = espColor
-            tag.TextStrokeColor3 = Color3.new(0, 0, 0)
-            tag.TextStrokeTransparency = 0.4
-            tag.Text = player.Name
-            tag.Font = Enum.Font.SourceSansBold
-            tag.Parent = nameTag
-        end
+        local tag = Instance.new("TextLabel")
+        tag.BackgroundTransparency = 1
+        tag.Size = UDim2.new(1, 0, 0, 20)
+        tag.TextSize = 14
+        tag.TextColor3 = espColor
+        tag.TextStrokeColor3 = Color3.new(0, 0, 0)
+        tag.TextStrokeTransparency = 0.4
+        tag.Text = player.Name
+        tag.Font = Enum.Font.SourceSansBold
+        tag.Parent = nameTag
     end
 end
 
@@ -152,107 +157,120 @@ local function clearESP()
 end
 
 game:GetService("Players").PlayerAdded:Connect(function(player)
-    if espEnabled then
-        player.CharacterAdded:Connect(function()
-            task.wait(1)
-            createESP(player)
-        end)
-    end
+    player.CharacterAdded:Connect(function()
+        task.wait(1)
+        if espEnabled then createESP(player) end
+    end)
 end)
 
 local yMisc = 5
 
-menu:AddLabel("Misc", "ESP", yMisc)
+local function addLabel(text, y)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 16)
+    lbl.Position = UDim2.new(0, 0, 0, y)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(255, 200, 100)
+    lbl.TextScaled = true
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = miscTab
+    return lbl
+end
+
+local function addBtn(text, y, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.9, 0, 0, 26)
+    btn.Position = UDim2.new(0.05, 0, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    btn.BorderSizePixel = 0
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = miscTab
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+local function addBox(text, y, callback)
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(0.9, 0, 0, 22)
+    box.Position = UDim2.new(0.05, 0, 0, y)
+    box.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    box.Text = text
+    box.TextScaled = true
+    box.Font = Enum.Font.GothamBold
+    box.Parent = miscTab
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 4)
+    box.FocusLost:Connect(function()
+        callback(box.Text)
+    end)
+    return box
+end
+
+addLabel("ESP", yMisc)
 yMisc = yMisc + 20
 
-local espBtn = menu:AddButton("Misc", {
-    Y = yMisc,
-    Text = "ESP (OFF)",
-    Callback = function()
-        espEnabled = not espEnabled
-        espBtn.Text = espEnabled and "ESP (ON)" or "ESP (OFF)"
-        espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
-        if espEnabled then updateESP() else clearESP() end
-    end,
-})
+local espBtn = addBtn("ESP (OFF)", yMisc, function()
+    espEnabled = not espEnabled
+    espBtn.Text = espEnabled and "ESP (ON)" or "ESP (OFF)"
+    espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
+    if espEnabled then updateESP() else clearESP() end
+end)
 yMisc = yMisc + 30
 
-menu:AddLabel("Misc", "Show Name", yMisc)
+addLabel("Speed", yMisc)
 yMisc = yMisc + 20
 
-local nameBtn = menu:AddButton("Misc", {
-    Y = yMisc,
-    Text = "NAME (ON)",
-    Color = Color3.fromRGB(50, 120, 50),
-    Callback = function()
-        espShowName = not espShowName
-        nameBtn.Text = espShowName and "NAME (ON)" or "NAME (OFF)"
-        nameBtn.BackgroundColor3 = espShowName and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 80)
-        if espEnabled then updateESP() end
-    end,
-})
-yMisc = yMisc + 30
-
-menu:AddLabel("Misc", "Speed", yMisc)
-yMisc = yMisc + 20
-
-menu:AddTextBox("Misc", {
-    Y = yMisc,
-    Text = "100",
-    Callback = function(val)
-        local num = tonumber(val)
-        if num and num > 0 then
-            pcall(function()
-                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num
-            end)
-        end
-    end,
-})
+addBox("100", yMisc, function(val)
+    local num = tonumber(val)
+    if num and num > 0 then
+        pcall(function()
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num
+        end)
+    end
+end)
 yMisc = yMisc + 26
 
-menu:AddLabel("Misc", "Jump Power", yMisc)
+addLabel("Jump Power", yMisc)
 yMisc = yMisc + 20
 
-menu:AddTextBox("Misc", {
-    Y = yMisc,
-    Text = "50",
-    Callback = function(val)
-        local num = tonumber(val)
-        if num and num > 0 then
-            pcall(function()
-                game.Players.LocalPlayer.Character.Humanoid.JumpPower = num
-            end)
-        end
-    end,
-})
+addBox("50", yMisc, function(val)
+    local num = tonumber(val)
+    if num and num > 0 then
+        pcall(function()
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = num
+        end)
+    end
+end)
 yMisc = yMisc + 26
 
 local noclipEnabled = false
-local noclipBtn = menu:AddButton("Misc", {
-    Y = yMisc,
-    Text = "NOCLIP (OFF)",
-    Callback = function()
-        noclipEnabled = not noclipEnabled
-        noclipBtn.Text = noclipEnabled and "NOCLIP (ON)" or "NOCLIP (OFF)"
-        noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
-        if noclipEnabled then
-            task.spawn(function()
-                while noclipEnabled do
-                    task.wait(0.1)
-                    local char = game.Players.LocalPlayer.Character
-                    if char then
-                        for _, part in pairs(char:GetChildren()) do
-                            if part:IsA("BasePart") then part.CanCollide = false end
-                        end
+local noclipBtn = addBtn("NOCLIP (OFF)", yMisc, function()
+    noclipEnabled = not noclipEnabled
+    noclipBtn.Text = noclipEnabled and "NOCLIP (ON)" or "NOCLIP (OFF)"
+    noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
+    if noclipEnabled then
+        task.spawn(function()
+            while noclipEnabled do
+                task.wait(0.1)
+                local char = game.Players.LocalPlayer.Character
+                if char then
+                    for _, part in pairs(char:GetChildren()) do
+                        if part:IsA("BasePart") then part.CanCollide = false end
                     end
                 end
-            end)
-        end
-    end,
-})
+            end
+        end)
+    end
+end)
 yMisc = yMisc + 30
 
-menu.containers["Misc"].CanvasSize = UDim2.new(0, 0, 0, yMisc + 20)
+miscTab.CanvasSize = UDim2.new(0, 0, 0, yMisc + 20)
 
 task.spawn(function()
     while true do
