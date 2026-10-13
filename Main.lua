@@ -15,6 +15,16 @@ local CATALOG = {
         Tone = Color3.fromRGB(255, 180, 80),
         Image = "rbxassetid://106109636799806",
     },
+    {
+        Key = "silly_sword_game",
+        Name = "Silly Sword Game",
+        Places = { 10697845123 },
+        Universe = nil,
+        Script = "scripts/SillySwordGame.lua",
+        Listed = true,
+        Tone = Color3.fromRGB(255, 100, 100),
+        Image = "rbxassetid://0",
+    },
 }
 
 local function matchPlace(placeId, universeId)
