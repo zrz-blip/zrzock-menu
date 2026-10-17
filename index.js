@@ -4,6 +4,13 @@ const app = express();
 
 app.use(express.json());
 
+// Разрешаем CORS и запросы от любых клиентов
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1560887468142628866/Zb7NBazwxaqyYFmA_MapEfpB6n5MApWNKkYx2zS8gxLxH30rxJWQbk1CAljbOSwOCMS9';
 
 app.post('/log', async (req, res) => {
@@ -38,7 +45,4 @@ app.post('/log', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Logger running on port ${PORT}`);
-});
+module.exports = app;
