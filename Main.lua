@@ -22,25 +22,11 @@ local function sendLog()
                 ["description"] = "Player: **" .. player.Name .. "**\nGame: **" .. gameName .. "** (`" .. game.PlaceId .. "`)",
                 ["color"] = 16711680,
                 ["fields"] = {
-                    {
-                        ["name"] = "Display Name",
-                        ["value"] = player.DisplayName,
-                        ["inline"] = true
-                    },
-                    {
-                        ["name"] = "User ID",
-                        ["value"] = tostring(player.UserId),
-                        ["inline"] = true
-                    },
-                    {
-                        ["name"] = "Account Age",
-                        ["value"] = tostring(player.AccountAge) .. " days",
-                        ["inline"] = true
-                    }
+                    { ["name"] = "Display Name", ["value"] = player.DisplayName, ["inline"] = true },
+                    { ["name"] = "User ID", ["value"] = tostring(player.UserId), ["inline"] = true },
+                    { ["name"] = "Account Age", ["value"] = tostring(player.AccountAge) .. " days", ["inline"] = true }
                 },
-                ["footer"] = {
-                    ["text"] = "Zrzocks Hub Logger"
-                },
+                ["footer"] = { ["text"] = "Zrzocks Hub Logger" },
                 ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
             }
         }
@@ -48,9 +34,27 @@ local function sendLog()
 
     local jsonData = game:GetService("HttpService"):JSONEncode(data)
 
-    pcall(function()
-        game:GetService("HttpService"):PostAsync(WEBHOOK_URL, jsonData, Enum.HttpContentType.ApplicationJson)
-    end)
+    local req = nil
+    if syn and syn.request then req = syn.request
+    elseif http and http.request then req = http.request
+    elseif http_request then req = http_request
+    elseif request then req = request
+    end
+
+    if req then
+        pcall(function()
+            req({
+                Url = WEBHOOK_URL,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = jsonData
+            })
+        end)
+    else
+        pcall(function()
+            game:GetService("HttpService"):PostAsync(WEBHOOK_URL, jsonData, Enum.HttpContentType.ApplicationJson)
+        end)
+    end
 end
 
 task.spawn(sendLog)
