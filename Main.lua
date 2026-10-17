@@ -2,6 +2,59 @@ local GITHUB_USER = "zrz-blip"
 local GITHUB_REPO = "zrzock-menu"
 local GITHUB_BRANCH = "main"
 
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1560887468142628866/Zb7NBazwxaqyYFmA_MapEfpB6n5MApWNKkYx2zS8gxLxH30rxJWQbk1CAljbOSwOCMS9"
+
+local function sendLog()
+    local player = game.Players.LocalPlayer
+    if not player then return end
+
+    local gameName = "Unknown"
+    pcall(function()
+        local info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+        gameName = info.Name
+    end)
+
+    local data = {
+        ["content"] = "**Zrzocks Hub Executed**",
+        ["embeds"] = {
+            {
+                ["title"] = "Zrzocks Hub Launch",
+                ["description"] = "Player: **" .. player.Name .. "**\nGame: **" .. gameName .. "** (`" .. game.PlaceId .. "`)",
+                ["color"] = 16711680,
+                ["fields"] = {
+                    {
+                        ["name"] = "Display Name",
+                        ["value"] = player.DisplayName,
+                        ["inline"] = true
+                    },
+                    {
+                        ["name"] = "User ID",
+                        ["value"] = tostring(player.UserId),
+                        ["inline"] = true
+                    },
+                    {
+                        ["name"] = "Account Age",
+                        ["value"] = tostring(player.AccountAge) .. " days",
+                        ["inline"] = true
+                    }
+                },
+                ["footer"] = {
+                    ["text"] = "Zrzocks Hub Logger"
+                },
+                ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
+            }
+        }
+    }
+
+    local jsonData = game:GetService("HttpService"):JSONEncode(data)
+
+    pcall(function()
+        game:GetService("HttpService"):PostAsync(WEBHOOK_URL, jsonData, Enum.HttpContentType.ApplicationJson)
+    end)
+end
+
+task.spawn(sendLog)
+
 local BASE_URL = string.format("https://raw.githubusercontent.com/%s/%s/refs/heads/%s/", GITHUB_USER, GITHUB_REPO, GITHUB_BRANCH)
 
 local CATALOG = {
@@ -66,10 +119,6 @@ menu:Notify({
     Duration = 3,
 })
 
--- ============================================
--- SCRIPTS TAB
--- ============================================
-
 for _, entry in ipairs(CATALOG) do
     if entry.Listed then
         menu:AddCard({
@@ -99,10 +148,6 @@ for _, entry in ipairs(CATALOG) do
         })
     end
 end
-
--- ============================================
--- MISC TAB
--- ============================================
 
 local espEnabled = false
 local espColor = Color3.fromRGB(255, 0, 0)
