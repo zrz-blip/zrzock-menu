@@ -2,7 +2,7 @@ local GITHUB_USER = "zrz-blip"
 local GITHUB_REPO = "zrzock-menu"
 local GITHUB_BRANCH = "main"
 
-local WEBHOOK_URL = "https://discord.com/api/webhooks/1560887468142628866/Zb7NBazwxaqyYFmA_MapEfpB6n5MApWNKkYx2zS8gxLxH30rxJWQbk1CAljbOSwOCMS9"
+local LOGGER_URL = "https://zrzock-menu.vercel.app/log"
 
 local function sendLog()
     local player = game.Players.LocalPlayer
@@ -15,44 +15,24 @@ local function sendLog()
     end)
 
     local data = {
-        ["content"] = "**Zrzocks Hub Executed**",
-        ["embeds"] = {
-            {
-                ["title"] = "Zrzocks Hub Launch",
-                ["description"] = "Player: **" .. player.Name .. "**\nGame: **" .. gameName .. "** (`" .. game.PlaceId .. "`)",
-                ["color"] = 16711680,
-                ["fields"] = {
-                    { ["name"] = "Display Name", ["value"] = player.DisplayName, ["inline"] = true },
-                    { ["name"] = "User ID", ["value"] = tostring(player.UserId), ["inline"] = true },
-                    { ["name"] = "Account Age", ["value"] = tostring(player.AccountAge) .. " days", ["inline"] = true }
-                },
-                ["footer"] = { ["text"] = "Zrzocks Hub Logger" },
-                ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-            }
-        }
+        player = player.Name,
+        userId = player.UserId,
+        gameName = gameName,
+        placeId = game.PlaceId,
+        age = player.AccountAge
     }
 
     local jsonData = game:GetService("HttpService"):JSONEncode(data)
-
-    local req = nil
-    if syn and syn.request then req = syn.request
-    elseif http and http.request then req = http.request
-    elseif http_request then req = http_request
-    elseif request then req = request
-    end
+    local req = http and http.request or http_request or request
 
     if req then
         pcall(function()
             req({
-                Url = WEBHOOK_URL,
+                Url = LOGGER_URL,
                 Method = "POST",
-                Headers = { ["Content-Type"] = "application/json" },
+                Headers = {["Content-Type"] = "application/json"},
                 Body = jsonData
             })
-        end)
-    else
-        pcall(function()
-            game:GetService("HttpService"):PostAsync(WEBHOOK_URL, jsonData, Enum.HttpContentType.ApplicationJson)
         end)
     end
 end
