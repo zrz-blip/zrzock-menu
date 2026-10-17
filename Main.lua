@@ -2,43 +2,6 @@ local GITHUB_USER = "zrz-blip"
 local GITHUB_REPO = "zrzock-menu"
 local GITHUB_BRANCH = "main"
 
-local LOGGER_URL = "https://zrzock-menu.vercel.app/log"
-
-local function sendLog()
-    local player = game.Players.LocalPlayer
-    if not player then return end
-
-    local gameName = "Unknown"
-    pcall(function()
-        local info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
-        gameName = info.Name
-    end)
-
-    local data = {
-        player = player.Name,
-        userId = player.UserId,
-        gameName = gameName,
-        placeId = game.PlaceId,
-        age = player.AccountAge
-    }
-
-    local jsonData = game:GetService("HttpService"):JSONEncode(data)
-    local req = http and http.request or http_request or request
-
-    if req then
-        pcall(function()
-            req({
-                Url = LOGGER_URL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = jsonData
-            })
-        end)
-    end
-end
-
-task.spawn(sendLog)
-
 local BASE_URL = string.format("https://raw.githubusercontent.com/%s/%s/refs/heads/%s/", GITHUB_USER, GITHUB_REPO, GITHUB_BRANCH)
 
 local CATALOG = {
