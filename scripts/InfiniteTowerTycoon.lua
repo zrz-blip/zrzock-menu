@@ -680,14 +680,14 @@ local function teleportToLeaf()
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    local folder = workspace:FindFirstChild("FallLeavesFolder")
+    local folder = workspace:FindFirstChild("BoneFolder")
     if not folder then return end
 
     local nearest = nil
     local minDist = math.huge
 
     for _, obj in ipairs(folder:GetChildren()) do
-        if obj:IsA("MeshPart") and obj.Name == "MapleLeaf" then
+        if obj:IsA("MeshPart") and obj.Name == "bone" then
             local dist = (obj.Position - hrp.Position).Magnitude
             if dist < minDist then
                 minDist = dist
