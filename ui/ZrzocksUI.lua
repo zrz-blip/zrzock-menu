@@ -4,14 +4,14 @@ ZrzocksUI.__index = ZrzocksUI
 function ZrzocksUI:CreateMenu(config)
     local self = setmetatable({}, ZrzocksUI)
     self.config = config or {}
-    self.cards = {}
     self.tabs = {}
     self.containers = {}
 
     local gui = Instance.new("ScreenGui")
-    gui.Name = "ZrzocksHub"
+    gui.Name = "ZrzocksHub_" .. tostring(math.random(1, 9999))
     gui.ResetOnSpawn = false
-    gui.Parent = game:GetService("CoreGui")
+    -- ХАК ДЛЯ XENO: создаем в PlayerGui, чтобы не было краша CoreGui
+    gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     self.gui = gui
 
     local frame = Instance.new("Frame")
@@ -109,13 +109,11 @@ function ZrzocksUI:AddTab(tabName)
     tab.Parent = self.leftPanel
     Instance.new("UICorner", tab).CornerRadius = UDim.new(0, 5)
 
-    local container = Instance.new("ScrollingFrame")
+    -- Используем обычный Frame вместо ScrollingFrame, чтобы Xeno не крашил
+    local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 1, 0)
     container.BackgroundTransparency = 1
     container.BorderSizePixel = 0
-    container.CanvasSize = UDim2.new(0, 0, 0, 0)
-    container.ScrollBarThickness = 3
-    container.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 100)
     container.Visible = false
     container.ZIndex = 2
     container.Parent = self.content
@@ -150,66 +148,61 @@ function ZrzocksUI:AddCard(cardConfig)
     local scroll = self.containers["Scripts"]
     if not scroll then return end
 
-    local grid = scroll:FindFirstChildOfClass("UIGridLayout")
-    if not grid then
-        grid = Instance.new("UIGridLayout")
-        grid.CellSize = UDim2.new(0, 220, 0, 200)
-        grid.CellPadding = UDim2.new(0, 8, 0, 8)
-        grid.SortOrder = Enum.SortOrder.LayoutOrder
-        grid.Parent = scroll
-    end
-
+    -- Убираем UIGridLayout, делаем простой список
     local card = Instance.new("Frame")
-    card.Size = UDim2.new(0, 220, 0, 200)
+    card.Size = UDim2.new(1, -10, 0, 65)
     card.BackgroundColor3 = Color3.fromRGB(28, 18, 14)
     card.BackgroundTransparency = 0.2
     card.BorderSizePixel = 0
-    card.ClipsDescendants = true
     card.Parent = scroll
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
 
+    -- Количество карточек для авто-позиции
+    local count = 0
+    for _ in pairs(scroll:GetChildren()) do count = count + 1 end
+    card.Position = UDim2.new(0, 5, 0, (count - 1) * 75)
+
     local image = Instance.new("ImageLabel")
-    image.Size = UDim2.new(1, -8, 0, 110)
-    image.Position = UDim2.new(0, 4, 0, 4)
+    image.Size = UDim2.new(0, 45, 0, 45)
+    image.Position = UDim2.new(0, 10, 0.5, -22.5)
     image.BackgroundColor3 = cardConfig.Tone or Color3.fromRGB(50, 50, 50)
-    image.BackgroundTransparency = 1
+    image.BackgroundTransparency = 0.5
     image.Image = cardConfig.Image or ""
-    image.ScaleType = Enum.ScaleType.Crop
     image.BorderSizePixel = 0
     image.Parent = card
     Instance.new("UICorner", image).CornerRadius = UDim.new(0, 6)
 
     local name = Instance.new("TextLabel")
-    name.Size = UDim2.new(1, -8, 0, 18)
-    name.Position = UDim2.new(0, 4, 0, 118)
+    name.Size = UDim2.new(1, -130, 0, 20)
+    name.Position = UDim2.new(0, 65, 0, 12)
     name.BackgroundTransparency = 1
     name.Text = cardConfig.Name or "Unknown"
     name.TextColor3 = Color3.fromRGB(255, 255, 255)
-    name.TextScaled = true
     name.Font = Enum.Font.GothamBold
+    name.TextSize = 14
     name.TextXAlignment = Enum.TextXAlignment.Left
     name.Parent = card
 
     local placeId = Instance.new("TextLabel")
-    placeId.Size = UDim2.new(1, -8, 0, 14)
-    placeId.Position = UDim2.new(0, 4, 0, 138)
+    placeId.Size = UDim2.new(1, -130, 0, 15)
+    placeId.Position = UDim2.new(0, 65, 0, 34)
     placeId.BackgroundTransparency = 1
     placeId.Text = "Place: " .. tostring(cardConfig.PlaceId or "N/A")
-    placeId.TextColor3 = Color3.fromRGB(180, 160, 150)
-    placeId.TextScaled = true
+    placeId.TextColor3 = Color3.fromRGB(170, 150, 140)
     placeId.Font = Enum.Font.Gotham
+    placeId.TextSize = 11
     placeId.TextXAlignment = Enum.TextXAlignment.Left
     placeId.Parent = card
 
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -8, 0, 26)
-    btn.Position = UDim2.new(0, 4, 1, -30)
+    btn.Size = UDim2.new(0, 60, 0, 30)
+    btn.Position = UDim2.new(1, -70, 0.5, -15)
     btn.BackgroundColor3 = cardConfig.Tone or Color3.fromRGB(50, 120, 50)
     btn.BorderSizePixel = 0
     btn.Text = cardConfig.ButtonText or "Run"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextScaled = true
     btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 13
     btn.Parent = card
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
@@ -218,8 +211,6 @@ function ZrzocksUI:AddCard(cardConfig)
             cardConfig.Callback()
         end
     end)
-
-    table.insert(self.cards, card)
 end
 
 function ZrzocksUI:AddButton(tabName, config)
