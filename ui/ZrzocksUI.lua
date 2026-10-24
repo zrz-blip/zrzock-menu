@@ -37,7 +37,7 @@ function ZrzocksUI:CreateMenu(config)
     title.Size = UDim2.new(1, -80, 1, 0)
     title.Position = UDim2.new(0, 12, 0, 0)
     title.BackgroundTransparency = 1
-    title.Text = (config.Icon or "⚡") .. " " .. (config.Name or "Zrzocks Hub")
+    title.Text = (config.Icon or "") .. " " .. (config.Name or "Zrzocks Hub")
     title.TextColor3 = Color3.fromRGB(230, 200, 170)
     title.TextScaled = true
     title.Font = Enum.Font.GothamBold
@@ -49,7 +49,7 @@ function ZrzocksUI:CreateMenu(config)
     closeBtn.Position = UDim2.new(1, -28, 0, 6)
     closeBtn.BackgroundColor3 = Color3.fromRGB(50, 30, 30)
     closeBtn.BorderSizePixel = 0
-    closeBtn.Text = "✕"
+    closeBtn.Text = "X"
     closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
     closeBtn.TextScaled = true
     closeBtn.Font = Enum.Font.GothamBold
@@ -117,6 +117,7 @@ function ZrzocksUI:AddTab(tabName)
     container.ScrollBarThickness = 3
     container.ScrollBarImageColor3 = Color3.fromRGB(255, 200, 100)
     container.Visible = false
+    container.ZIndex = 2
     container.Parent = self.content
     self.containers[tabName] = container
 
@@ -217,6 +218,8 @@ function ZrzocksUI:AddCard(cardConfig)
             cardConfig.Callback()
         end
     end)
+
+    table.insert(self.cards, card)
 end
 
 function ZrzocksUI:AddButton(tabName, config)
