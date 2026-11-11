@@ -117,7 +117,7 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 -- ============================================
--- Misc Elements (ИСПРАВЛЕНО: btn передается)
+-- Misc Elements
 -- ============================================
 menu:AddLabel("Misc", "--- ESP ---")
 local espBtn = menu:AddButton("Misc", {
@@ -157,7 +157,7 @@ menu:AddLabel("Misc", "--- NOCLIP ---")
 local noclipEnabled = false
 menu:AddButton("Misc", {
     Text = "Noclip: OFF",
-    Callback = function(btn) -- ИСПРАВЛЕНО: btn приходит
+    Callback = function(btn)
         noclipEnabled = not noclipEnabled
         btn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
         btn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(225, 25, 45) or Color3.fromRGB(24, 24, 28)
@@ -168,11 +168,20 @@ menu:AddButton("Misc", {
                     local char = Players.LocalPlayer.Character
                     if char then
                         for _, part in pairs(char:GetChildren()) do
-                            if part:IsA("BasePart") then part.CollisionGroup = "NoclipGroup" end
+                            -- ИСПРАВЛЕНО: Возвращен CanCollide
+                            if part:IsA("BasePart") then part.CanCollide = false end
                         end
                     end
                 end
             end)
+        else
+            -- При выключении возвращаем коллизию
+            local char = Players.LocalPlayer.Character
+            if char then
+                for _, part in pairs(char:GetChildren()) do
+                    if part:IsA("BasePart") then part.CanCollide = true end
+                end
+            end
         end
     end,
 })
