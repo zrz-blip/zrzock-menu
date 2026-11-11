@@ -1,8 +1,13 @@
 -- ============================================
--- ZRZOCKS UI (OVERWRITE Style)
+-- ZRZOCKS UI v2.1 (OVERWRITE Style + Fixes)
 -- ============================================
 local ZrzocksUI = {}
 ZrzocksUI.__index = ZrzocksUI
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 -- Палитра Cross Style
 local THEME = {
@@ -23,20 +28,31 @@ function ZrzocksUI:CreateMenu(config)
     self.tabs = {}
     self.containers = {}
     self.connections = {}
+    self.isExpanded = false
+    self.isFullyHidden = false
 
     local gui = Instance.new("ScreenGui")
     gui.Name = "ZrzocksHub_" .. tostring(math.random(1, 9999))
     gui.ResetOnSpawn = false
-    -- Безопасная инициализация для Xeno
+    
+    -- Безопасная инициализация (Xeno fallback)
     local ok, hui = pcall(gethui)
-    if ok and hui then gui.Parent = hui
-    else gui.Parent = game:GetService("CoreGui") end
+    if ok and hui then
+        gui.Parent = hui
+    else
+        local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
+        if pg then
+            gui.Parent = pg
+        else
+            gui.Parent = game:GetService("CoreGui")
+        end
+    end
     self.gui = gui
 
-    -- Главная рамка
+    -- Главная рамка (стартует как компактная пилюля)
     local frame = Instance.new("Frame")
-    frame.Size = config.Size or UDim2.fromOffset(600, 420)
-    frame.Position = UDim2.new(0.5, -300, 0.5, -210)
+    frame.Size = UDim2.new(0, 340, 0, 46)
+    frame.Position = UDim2.new(0.5, -170, 0, 16)
     frame.BackgroundColor3 = THEME.BgGlass
     frame.BackgroundTransparency = 0.05
     frame.BorderSizePixel = 0
@@ -56,63 +72,122 @@ function ZrzocksUI:CreateMenu(config)
         ColorSequenceKeypoint.new(1, THEME.Accent)
     })
 
-    -- Заголовок
-    local header = Instance.new("Frame")
-    header.Size = UDim2.new(1, 0, 0, 40)
-    header.BackgroundColor3 = THEME.BgSide
-    header.BorderSizePixel = 0
-    header.Parent = frame
-    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 6)
+    -- Верхняя панель (TopBar)
+    local topBar = Instance.new("Frame")
+    topBar.Size = UDim2.new(1, 0, 0, 46)
+    topBar.BackgroundTransparency = 1
+    topBar.Parent = frame
+
+    local pulseDot = Instance.new("Frame")
+    pulseDot.Size = UDim2.new(0, 10, 0, 10)
+    pulseDot.Position = UDim2.new(0, 18, 0.5, -5)
+    pulseDot.BackgroundColor3 = THEME.Accent
+    pulseDot.Parent = topBar
+    Instance.new("UICorner", pulseDot).CornerRadius = UDim.new(1, 0)
+
+    -- Пульсация точки
+    task.spawn(function()
+        while pulseDot.Parent do
+            TweenService:Create(pulseDot, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {BackgroundColor3 = THEME.Accent2, Size = UDim2.new(0, 12, 0, 12)}):Play()
+            task.wait(0.1)
+            if not pulseDot.Parent then break end
+            TweenService:Create(pulseDot, TweenInfo.new(0.4, Enum.EasingStyle.Linear), {BackgroundColor3 = THEME.Accent, Size = UDim2.new(0, 10, 0, 10)}):Play()
+            task.wait(0.8)
+        end
+    end)
 
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -60, 1, 0)
-    title.Position = UDim2.new(0, 16, 0, 0)
+    title.Size = UDim2.new(0, 200, 1, 0)
+    title.Position = UDim2.new(0, 38, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = (config.Icon or "") .. " " .. (config.Name or "Zrzocks Hub")
     title.TextColor3 = THEME.TextMain
     title.Font = Enum.Font.Code
     title.TextSize = 15
     title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = header
+    title.Parent = topBar
+
+    local fpsLabel = Instance.new("TextLabel")
+    fpsLabel.Size = UDim2.new(0, 80, 1, 0)
+    fpsLabel.Position = UDim2.new(0, 155, 0, 0)
+    fpsLabel.BackgroundTransparency = 1
+    fpsLabel.Text = "0 FPS"
+    fpsLabel.TextColor3 = THEME.TextSub
+    fpsLabel.Font = Enum.Font.Code
+    fpsLabel.TextSize = 12
+    fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    fpsLabel.Parent = topBar
+
+    -- FPS Update
+    local lastTime = os.clock()
+    local frameCount = 0
+    self.connections[#self.connections+1] = RunService.RenderStepped:Connect(function()
+        frameCount += 1
+        if os.clock() - lastTime >= 1 then
+            fpsLabel.Text = frameCount .. " FPS"
+            frameCount = 0
+            lastTime = os.clock()
+        end
+    end)
+
+    local expandBtn = Instance.new("TextButton")
+    expandBtn.Size = UDim2.new(0, 70, 0, 28)
+    expandBtn.Position = UDim2.new(1, -80, 0.5, -14)
+    expandBtn.BackgroundColor3 = THEME.Accent
+    expandBtn.Text = "OPEN"
+    expandBtn.TextColor3 = THEME.Accent2
+    expandBtn.Font = Enum.Font.Code
+    expandBtn.TextSize = 13
+    expandBtn.AutoButtonColor = false
+    expandBtn.Parent = topBar
+    Instance.new("UICorner", expandBtn).CornerRadius = UDim.new(0, 4)
 
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 28, 0, 28)
-    closeBtn.Position = UDim2.new(1, -36, 0.5, -14)
-    closeBtn.BackgroundColor3 = THEME.Accent
+    closeBtn.Position = UDim2.new(1, -38, 0.5, -14)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 20, 40)
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = THEME.Accent2
     closeBtn.Font = Enum.Font.Code
     closeBtn.TextSize = 14
-    closeBtn.Parent = header
+    closeBtn.Visible = false
+    closeBtn.Parent = topBar
     Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 4)
 
-    -- Кастомный Drag (только за Header)
+    -- Кастомный Drag (только за TopBar)
     local dragging, dragStart, startPos
-    self.connections[#self.connections+1] = header.InputBegan:Connect(function(input)
+    self.connections[#self.connections+1] = topBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
             startPos = frame.Position
         end
     end)
-    self.connections[#self.connections+1] = game:GetService("UserInputService").InputChanged:Connect(function(input)
+    self.connections[#self.connections+1] = UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
-    self.connections[#self.connections+1] = game:GetService("UserInputService").InputEnded:Connect(function(input)
+    self.connections[#self.connections+1] = UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
     end)
 
-    -- Левая панель (Сайдбар)
+    -- Тело (сворачивается/разворачивается)
+    local bodyContainer = Instance.new("Frame")
+    bodyContainer.Size = UDim2.new(1, -16, 1, -58)
+    bodyContainer.Position = UDim2.new(0, 8, 0, 52)
+    bodyContainer.BackgroundTransparency = 1
+    bodyContainer.Visible = false
+    bodyContainer.Parent = frame
+    self.bodyContainer = bodyContainer
+
     local leftPanel = Instance.new("Frame")
-    leftPanel.Size = UDim2.new(0, 130, 1, -50)
-    leftPanel.Position = UDim2.new(0, 8, 0, 46)
+    leftPanel.Size = UDim2.new(0, 130, 1, 0)
     leftPanel.BackgroundColor3 = THEME.BgSide
     leftPanel.BackgroundTransparency = 0.1
     leftPanel.BorderSizePixel = 0
-    leftPanel.Parent = frame
+    leftPanel.Parent = bodyContainer
     Instance.new("UICorner", leftPanel).CornerRadius = UDim.new(0, 6)
     self.leftPanel = leftPanel
 
@@ -133,11 +208,11 @@ function ZrzocksUI:CreateMenu(config)
     avatarImage.Parent = avatarFrame
     Instance.new("UICorner", avatarImage).CornerRadius = UDim.new(0, 3)
     pcall(function()
-        local thumb = game.Players:GetUserThumbnailAsync(game.Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+        local thumb = Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
         avatarImage.Image = thumb
     end)
 
-    -- Список вкладок (UIListLayout)
+    -- Список вкладок
     local tabList = Instance.new("Frame")
     tabList.Size = UDim2.new(1, -16, 1, -110)
     tabList.Position = UDim2.new(0, 8, 0, 98)
@@ -149,10 +224,10 @@ function ZrzocksUI:CreateMenu(config)
 
     -- Контентная область
     local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -150, 1, -58)
-    content.Position = UDim2.new(0, 142, 0, 46)
+    content.Size = UDim2.new(1, -150, 1, 0)
+    content.Position = UDim2.new(0, 138, 0, 0)
     content.BackgroundTransparency = 1
-    content.Parent = frame
+    content.Parent = bodyContainer
     self.content = content
 
     -- Контейнер уведомлений
@@ -163,16 +238,50 @@ function ZrzocksUI:CreateMenu(config)
     notifContainer.Parent = gui
     self.notifContainer = notifContainer
 
+    -- Логика сворачивания
+    local function ToggleDockState()
+        self.isExpanded = not self.isExpanded
+        if self.isExpanded then
+            expandBtn.Text = "HIDE"
+            TweenService:Create(expandBtn, TweenInfo.new(0.15), {Position = UDim2.new(1, -110, 0.5, -14), BackgroundColor3 = THEME.BgElem, TextColor3 = THEME.TextMain}):Play()
+            closeBtn.Visible = true
+            bodyContainer.Visible = true
+            TweenService:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 560, 0, 400),
+                Position = UDim2.new(frame.Position.X.Scale, frame.Position.X.Offset - 110, frame.Position.Y.Scale, frame.Position.Y.Offset),
+            }):Play()
+        else
+            expandBtn.Text = "OPEN"
+            TweenService:Create(expandBtn, TweenInfo.new(0.15), {Position = UDim2.new(1, -80, 0.5, -14), BackgroundColor3 = THEME.Accent, TextColor3 = THEME.Accent2}):Play()
+            closeBtn.Visible = false
+            local tw = TweenService:Create(frame, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 340, 0, 46),
+                Position = UDim2.new(frame.Position.X.Scale, frame.Position.X.Offset + 110, frame.Position.Y.Scale, frame.Position.Y.Offset),
+            })
+            tw:Play()
+            tw.Completed:Connect(function() if not self.isExpanded then bodyContainer.Visible = false end end)
+        end
+    end
+
+    self.connections[#self.connections+1] = expandBtn.MouseButton1Click:Connect(function()
+        TweenService:Create(mainStroke, TweenInfo.new(0.05), {Transparency = 0}):Play()
+        task.wait(0.05)
+        TweenService:Create(mainStroke, TweenInfo.new(0.2), {Transparency = 0.2}):Play()
+        ToggleDockState()
+    end)
+
     closeBtn.MouseButton1Click:Connect(function()
         for _, conn in ipairs(self.connections) do pcall(function() conn:Disconnect() end) end
         gui:Destroy()
     end)
 
+    -- Хоткей
     if config.ToggleKey then
-        self.connections[#self.connections+1] = game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
+        self.connections[#self.connections+1] = UserInputService.InputBegan:Connect(function(input, gp)
             if gp then return end
             if input.KeyCode == config.ToggleKey then
-                frame.Visible = not frame.Visible
+                self.isFullyHidden = not self.isFullyHidden
+                frame.Visible = not self.isFullyHidden
             end
         end)
     end
@@ -181,11 +290,21 @@ function ZrzocksUI:CreateMenu(config)
 end
 
 function ZrzocksUI:AddTab(tabName)
-    local container = Instance.new("Frame")
+    -- Используем ScrollingFrame для предотвращения обрезки
+    local container = Instance.new("ScrollingFrame")
     container.Size = UDim2.new(1, 0, 1, 0)
     container.BackgroundTransparency = 1
+    container.BorderSizePixel = 0
+    container.ScrollBarThickness = 3
+    container.ScrollBarImageColor3 = THEME.Accent
+    container.CanvasSize = UDim2.new(0, 0, 0, 0)
+    container.AutomaticCanvasSize = Enum.AutomaticSize.Y
     container.Visible = false
     container.Parent = self.content
+    
+    local list = Instance.new("UIListLayout", container)
+    list.Padding = UDim.new(0, 6)
+
     self.containers[tabName] = container
 
     local tab = Instance.new("TextButton")
@@ -223,13 +342,6 @@ end
 function ZrzocksUI:AddCard(config)
     local scroll = self.containers["Scripts"]
     if not scroll then return end
-
-    -- Используем UIListLayout для автоматического выстраивания
-    local hasLayout = scroll:FindFirstChildOfClass("UIListLayout")
-    if not hasLayout then
-        local l = Instance.new("UIListLayout", scroll)
-        l.Padding = UDim.new(0, 6)
-    end
 
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, -8, 0, 65)
@@ -281,19 +393,13 @@ function ZrzocksUI:AddCard(config)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
 
     btn.MouseButton1Click:Connect(function()
-        if config.Callback then config.Callback() end
+        if config.Callback then config.Callback(btn) end
     end)
 end
 
 function ZrzocksUI:AddButton(tabName, config)
     local container = self.containers[tabName]
     if not container then return end
-
-    local hasLayout = container:FindFirstChildOfClass("UIListLayout")
-    if not hasLayout then
-        local l = Instance.new("UIListLayout", container)
-        l.Padding = UDim.new(0, 6)
-    end
 
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -8, 0, 36)
@@ -305,9 +411,13 @@ function ZrzocksUI:AddButton(tabName, config)
     btn.TextSize = 13
     btn.Parent = container
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    local bStroke = Instance.new("UIStroke", btn); bStroke.Color = THEME.Stroke; bStroke.Thickness = 1
 
+    -- Передача кнопки в коллбэк (ИСПРАВЛЕНО)
     if config.Callback then
-        btn.MouseButton1Click:Connect(config.Callback)
+        btn.MouseButton1Click:Connect(function()
+            config.Callback(btn)
+        end)
     end
     return btn
 end
@@ -363,6 +473,7 @@ function ZrzocksUI:AddTextBox(tabName, config)
     box.Parent = holder
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 2)
 
+    -- TweenService теперь объявлен (ИСПРАВЛЕНО)
     box.Focused:Connect(function() TweenService:Create(hStroke, TweenInfo.new(0.1), {Color = THEME.Accent}):Play() end)
     box.FocusLost:Connect(function()
         TweenService:Create(hStroke, TweenInfo.new(0.1), {Color = THEME.Stroke}):Play()
