@@ -1,5 +1,5 @@
 -- ============================================
--- ZRZOCKS UI v2.2 (OVERWRITE Style + Fixes)
+-- ZRZOCKS UI v2.3 (OVERWRITE Style + Fixes)
 -- ============================================
 local ZrzocksUI = {}
 ZrzocksUI.__index = ZrzocksUI
@@ -9,7 +9,6 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
--- Палитра Cross Style
 local THEME = {
     BgGlass    = Color3.fromRGB(10, 10, 12),
     BgSide     = Color3.fromRGB(16, 16, 20),
@@ -35,17 +34,14 @@ function ZrzocksUI:CreateMenu(config)
     gui.Name = "ZrzocksHub_" .. tostring(math.random(1, 9999))
     gui.ResetOnSpawn = false
     
-    -- Безопасная инициализация (Xeno fallback)
     local ok, hui = pcall(gethui)
-    if ok and hui then
-        gui.Parent = hui
+    if ok and hui then gui.Parent = hui
     else
         local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
         if pg then gui.Parent = pg else gui.Parent = game:GetService("CoreGui") end
     end
     self.gui = gui
 
-    -- Главная рамка (стартует как компактная пилюля)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 340, 0, 46)
     frame.Position = UDim2.new(0.5, -170, 0, 16)
@@ -57,7 +53,6 @@ function ZrzocksUI:CreateMenu(config)
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
     self.frame = frame
 
-    -- Диагональный градиент на обводке
     local mainStroke = Instance.new("UIStroke", frame)
     mainStroke.Thickness = 1.5
     mainStroke.Transparency = 0.2
@@ -68,7 +63,6 @@ function ZrzocksUI:CreateMenu(config)
         ColorSequenceKeypoint.new(1, THEME.Accent)
     })
 
-    -- Верхняя панель (TopBar)
     local topBar = Instance.new("Frame")
     topBar.Size = UDim2.new(1, 0, 0, 46)
     topBar.BackgroundTransparency = 1
@@ -91,22 +85,20 @@ function ZrzocksUI:CreateMenu(config)
         end
     end)
 
-    -- Заголовок (сдвинут, чтобы не наезжать на FPS)
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(0, 130, 1, 0) -- уменьшили ширину
+    title.Size = UDim2.new(0, 130, 1, 0)
     title.Position = UDim2.new(0, 38, 0, 0)
     title.BackgroundTransparency = 1
-    title.Text = "OVERWRITE" -- сократили
+    title.Text = "OVERWRITE"
     title.TextColor3 = THEME.TextMain
     title.Font = Enum.Font.Code
     title.TextSize = 15
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = topBar
 
-    -- FPS (сдвинут правее)
     local fpsLabel = Instance.new("TextLabel")
     fpsLabel.Size = UDim2.new(0, 80, 1, 0)
-    fpsLabel.Position = UDim2.new(0, 185, 0, 0) -- сдвиг
+    fpsLabel.Position = UDim2.new(0, 185, 0, 0)
     fpsLabel.BackgroundTransparency = 1
     fpsLabel.Text = "0 FPS"
     fpsLabel.TextColor3 = THEME.TextSub
@@ -150,7 +142,6 @@ function ZrzocksUI:CreateMenu(config)
     closeBtn.Parent = topBar
     Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 4)
 
-    -- Drag
     local dragging, dragStart, startPos
     self.connections[#self.connections+1] = topBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -169,7 +160,6 @@ function ZrzocksUI:CreateMenu(config)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
     end)
 
-    -- Тело
     local bodyContainer = Instance.new("Frame")
     bodyContainer.Size = UDim2.new(1, -16, 1, -58)
     bodyContainer.Position = UDim2.new(0, 8, 0, 52)
@@ -187,7 +177,6 @@ function ZrzocksUI:CreateMenu(config)
     Instance.new("UICorner", leftPanel).CornerRadius = UDim.new(0, 6)
     self.leftPanel = leftPanel
 
-    -- Портрет
     local avatarFrame = Instance.new("Frame")
     avatarFrame.Size = UDim2.new(0, 80, 0, 80)
     avatarFrame.Position = UDim2.new(0.5, -40, 0, 10)
@@ -208,7 +197,6 @@ function ZrzocksUI:CreateMenu(config)
         avatarImage.Image = thumb
     end)
 
-    -- Вкладки
     local tabList = Instance.new("Frame")
     tabList.Size = UDim2.new(1, -16, 1, -110)
     tabList.Position = UDim2.new(0, 8, 0, 98)
@@ -218,7 +206,6 @@ function ZrzocksUI:CreateMenu(config)
     listLayout.Padding = UDim.new(0, 4)
     self.tabList = tabList
 
-    -- Контент
     local content = Instance.new("Frame")
     content.Size = UDim2.new(1, -150, 1, 0)
     content.Position = UDim2.new(0, 138, 0, 0)
@@ -226,7 +213,6 @@ function ZrzocksUI:CreateMenu(config)
     content.Parent = bodyContainer
     self.content = content
 
-    -- Уведомления (ИСПРАВЛЕНО: позиция и UIListLayout)
     local notifContainer = Instance.new("Frame")
     notifContainer.Size = UDim2.new(0, 280, 1, 0)
     notifContainer.Position = UDim2.new(1, -290, 0, 20)
@@ -238,7 +224,6 @@ function ZrzocksUI:CreateMenu(config)
     notifLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     self.notifContainer = notifContainer
 
-    -- Логика сворачивания
     local function ToggleDockState()
         self.isExpanded = not self.isExpanded
         if self.isExpanded then
@@ -296,12 +281,17 @@ function ZrzocksUI:AddTab(tabName)
     container.ScrollBarThickness = 3
     container.ScrollBarImageColor3 = THEME.Accent
     container.CanvasSize = UDim2.new(0, 0, 0, 0)
-    container.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    -- Убрано AutomaticCanvasSize, добавлен ручной подсчет
     container.Visible = false
     container.Parent = self.content
     
     local list = Instance.new("UIListLayout", container)
     list.Padding = UDim.new(0, 6)
+
+    -- ИСПРАВЛЕНО: Ручной подсчет CanvasSize для Xeno
+    list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        container.CanvasSize = UDim2.new(0, 0, 0, list.AbsoluteContentSize.Y + 10)
+    end)
 
     self.containers[tabName] = container
 
@@ -317,7 +307,7 @@ function ZrzocksUI:AddTab(tabName)
     tab.Parent = self.tabList
     Instance.new("UICorner", tab).CornerRadius = UDim.new(0, 4)
 
-    tab.MouseButton1Click:Connect(function()
+    local conn = tab.MouseButton1Click:Connect(function()
         for _, other in ipairs(self.tabs) do
             other.tab.BackgroundColor3 = THEME.BgElem
             other.tab.TextColor3 = THEME.TextSub
@@ -327,6 +317,7 @@ function ZrzocksUI:AddTab(tabName)
         tab.TextColor3 = THEME.Accent2
         container.Visible = true
     end)
+    table.insert(self.connections, conn) -- ИСПРАВЛЕНО: Очистка
 
     table.insert(self.tabs, {tab = tab, name = tabName})
     if #self.tabs == 1 then
@@ -390,9 +381,10 @@ function ZrzocksUI:AddCard(config)
     btn.Parent = card
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
 
-    btn.MouseButton1Click:Connect(function()
+    local conn = btn.MouseButton1Click:Connect(function()
         if config.Callback then config.Callback(btn) end
     end)
+    table.insert(self.connections, conn)
 end
 
 function ZrzocksUI:AddButton(tabName, config)
@@ -412,9 +404,10 @@ function ZrzocksUI:AddButton(tabName, config)
     local bStroke = Instance.new("UIStroke", btn); bStroke.Color = THEME.Stroke; bStroke.Thickness = 1
 
     if config.Callback then
-        btn.MouseButton1Click:Connect(function()
+        local conn = btn.MouseButton1Click:Connect(function()
             config.Callback(btn)
         end)
+        table.insert(self.connections, conn)
     end
     return btn
 end
@@ -470,11 +463,13 @@ function ZrzocksUI:AddTextBox(tabName, config)
     box.Parent = holder
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 2)
 
-    box.Focused:Connect(function() TweenService:Create(hStroke, TweenInfo.new(0.1), {Color = THEME.Accent}):Play() end)
-    box.FocusLost:Connect(function()
+    local fConn = box.Focused:Connect(function() TweenService:Create(hStroke, TweenInfo.new(0.1), {Color = THEME.Accent}):Play() end)
+    local lConn = box.FocusLost:Connect(function()
         TweenService:Create(hStroke, TweenInfo.new(0.1), {Color = THEME.Stroke}):Play()
         if config.Callback then config.Callback(box.Text) end
     end)
+    table.insert(self.connections, fConn)
+    table.insert(self.connections, lConn)
     return box
 end
 
