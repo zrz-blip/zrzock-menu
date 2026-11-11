@@ -1,11 +1,9 @@
 -- ============================================
--- NEON CORE v2 — Stealth Universal Hub
+-- NEON CORE v3 — Final Stealth Edition
 -- ============================================
-print("=== NEON CORE v2 LOADING ===")
+print("=== NEON CORE v3 LOADING ===")
 
--- ============================================
 -- STEALTH ЗАЩИТА
--- ============================================
 if getgenv().__NeonCoreLoaded then
     pcall(function() getgenv().__NeonCoreLoaded:Destroy() end)
 end
@@ -15,22 +13,18 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
+local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
--- Безопасный контейнер (gethui прячет от античитов)
 local parentContainer
 local ok, hui = pcall(gethui)
 if ok and hui then parentContainer = hui
 else parentContainer = game:GetService("CoreGui") end
 
--- Рандомное имя, чтобы античит не нашёл по сигнатуре
 local function randomString(len)
     local chars = "abcdefghijklmnopqrstuvwxyz0123456789"
     local res = ""
-    for _ = 1, len do
-        local idx = math.random(1, #chars)
-        res = res .. string.sub(chars, idx, idx)
-    end
+    for _ = 1, len do res = res .. string.sub(chars, math.random(1, #chars), math.random(1, #chars)) end
     return res
 end
 
@@ -41,7 +35,6 @@ ScreenGui.DisplayOrder = 999
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = parentContainer
 
--- syn.protect_gui (если есть)
 pcall(function()
     if syn and syn.protect_gui then syn.protect_gui(ScreenGui) end
     if protectgui then protectgui(ScreenGui) end
@@ -49,9 +42,6 @@ end)
 
 getgenv().__NeonCoreLoaded = ScreenGui
 
--- ============================================
--- ТЕМА
--- ============================================
 local THEME = {
     BgGlass     = Color3.fromRGB(16, 14, 28),
     BgSide      = Color3.fromRGB(20, 18, 36),
@@ -67,9 +57,30 @@ local THEME = {
     Stroke      = Color3.fromRGB(60, 55, 100),
 }
 
--- ============================================
+-- КОНФИГИ
+local Config = {}
+local ConfigPath = "NeonCore_Config.json"
+
+local function SaveConfig()
+    pcall(function()
+        if writefile then writefile(ConfigPath, HttpService:JSONEncode(Config)) end
+    end)
+end
+
+local function LoadConfig()
+    pcall(function()
+        if isfile and isfile(ConfigPath) and readfile then
+            local data = readfile(ConfigPath)
+            if data and data ~= "" then
+                local decoded = HttpService:JSONDecode(data)
+                for k, v in pairs(decoded) do Config[k] = v end
+            end
+        end
+    end)
+end
+LoadConfig()
+
 -- NOTIFY
--- ============================================
 local NotifyHolder = Instance.new("Frame")
 NotifyHolder.Name = randomString(8)
 NotifyHolder.Size = UDim2.new(0, 300, 1, 0)
@@ -83,9 +94,7 @@ notifyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
 
 local function Notify(title, message, kind)
     kind = kind or "info"
-    local color = THEME.Accent
-    if kind == "success" then color = THEME.Success
-    elseif kind == "danger" then color = THEME.Danger end
+    local color = (kind == "success" and THEME.Success) or (kind == "danger" and THEME.Danger) or THEME.Accent
 
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, 0, 0, 60)
@@ -141,11 +150,10 @@ local function Notify(title, message, kind)
     end)
 end
 
--- ============================================
--- ГЛАВНОЕ ОКНО (Dynamic Island)
--- ============================================
+-- ГЛАВНОЕ ОКНО
 local isExpanded = false
 local isFullyHidden = false
+local ToggleKey = Enum.KeyCode.RightControl
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 340, 0, 46)
@@ -168,7 +176,7 @@ TopBar.Size = UDim2.new(1, 0, 0, 46)
 TopBar.BackgroundTransparency = 1
 TopBar.Parent = MainFrame
 
--- Плавный Drag за TopBar
+-- ПЛАВНЫЙ DRAG
 local dragging, dragStart, startPos
 TopBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -259,9 +267,6 @@ CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- ============================================
--- ТЕЛО ОКНА
--- ============================================
 local BodyContainer = Instance.new("Frame")
 BodyContainer.Size = UDim2.new(1, -16, 1, -58)
 BodyContainer.Position = UDim2.new(0, 8, 0, 52)
@@ -292,50 +297,35 @@ ContentArea.Parent = BodyContainer
 
 local function ToggleDockState(forceState)
     if forceState ~= nil then isExpanded = forceState else isExpanded = not isExpanded end
-
     if isExpanded then
         ExpandBtn.Text = "HIDE"
-        TweenService:Create(ExpandBtn, TweenInfo.new(0.2), {
-            Position = UDim2.new(1, -110, 0.5, -14), BackgroundColor3 = THEME.BgElem,
-        }):Play()
+        TweenService:Create(ExpandBtn, TweenInfo.new(0.2), {Position = UDim2.new(1, -110, 0.5, -14), BackgroundColor3 = THEME.BgElem}):Play()
         CloseBtn.Visible = true
         BodyContainer.Visible = true
         TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 560, 0, 380),
-            Position = UDim2.new(MainFrame.Position.X.Scale, MainFrame.Position.X.Offset - 110,
-                                 MainFrame.Position.Y.Scale, MainFrame.Position.Y.Offset),
+            Position = UDim2.new(MainFrame.Position.X.Scale, MainFrame.Position.X.Offset - 110, MainFrame.Position.Y.Scale, MainFrame.Position.Y.Offset),
         }):Play()
-        TweenService:Create(MainFrame:FindFirstChildOfClass("UICorner"), TweenInfo.new(0.25), {
-            CornerRadius = UDim.new(0, 16),
-        }):Play()
+        TweenService:Create(MainFrame:FindFirstChildOfClass("UICorner"), TweenInfo.new(0.25), {CornerRadius = UDim.new(0, 16)}):Play()
     else
         ExpandBtn.Text = "OPEN"
-        TweenService:Create(ExpandBtn, TweenInfo.new(0.2), {
-            Position = UDim2.new(1, -80, 0.5, -14), BackgroundColor3 = THEME.Accent,
-        }):Play()
+        TweenService:Create(ExpandBtn, TweenInfo.new(0.2), {Position = UDim2.new(1, -80, 0.5, -14), BackgroundColor3 = THEME.Accent}):Play()
         CloseBtn.Visible = false
-        local tw = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingStyle.In), {
+        local tw = TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
             Size = UDim2.new(0, 340, 0, 46),
-            Position = UDim2.new(MainFrame.Position.X.Scale, MainFrame.Position.X.Offset + 110,
-                                 MainFrame.Position.Y.Scale, MainFrame.Position.Y.Offset),
+            Position = UDim2.new(MainFrame.Position.X.Scale, MainFrame.Position.X.Offset + 110, MainFrame.Position.Y.Scale, MainFrame.Position.Y.Offset),
         })
         tw:Play()
-        TweenService:Create(MainFrame:FindFirstChildOfClass("UICorner"), TweenInfo.new(0.22), {
-            CornerRadius = UDim.new(0, 24),
-        }):Play()
+        TweenService:Create(MainFrame:FindFirstChildOfClass("UICorner"), TweenInfo.new(0.22), {CornerRadius = UDim.new(0, 24)}):Play()
         tw.Completed:Connect(function()
             if not isExpanded then BodyContainer.Visible = false end
         end)
     end
 end
-
 ExpandBtn.MouseButton1Click:Connect(function() ToggleDockState() end)
 
--- ============================================
 -- UI API
--- ============================================
-local pages = {}
-local tabBtns = {}
+local pages, tabBtns = {}, {}
 
 local function CreateTab(name)
     local btn = Instance.new("TextButton")
@@ -370,7 +360,6 @@ local function CreateTab(name)
         page.Visible = true
         TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.Accent, TextColor3 = Color3.new(1, 1, 1)}):Play()
     end)
-
     table.insert(pages, page)
     table.insert(tabBtns, btn)
     if #pages == 1 then
@@ -381,14 +370,28 @@ local function CreateTab(name)
     return page
 end
 
-local function AddSection(page, text)
+-- ИСПРАВЛЕНО: AddLabel теперь есть
+local function AddLabel(page, text)
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -8, 0, 22)
     lbl.BackgroundTransparency = 1
     lbl.Text = text
+    lbl.TextColor3 = THEME.TextSub
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 11
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = page
+    return lbl
+end
+
+local function AddSection(page, text)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -8, 0, 20)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
     lbl.TextColor3 = THEME.AccentGlow
     lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 11
+    lbl.TextSize = 10
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.Parent = page
     return lbl
@@ -408,11 +411,7 @@ local function AddToggle(page, text, default, callback)
     holder.AutoButtonColor = false
     holder.Parent = page
     Instance.new("UICorner", holder).CornerRadius = UDim.new(0, 10)
-
-    local hStroke = Instance.new("UIStroke")
-    hStroke.Color = THEME.Stroke
-    hStroke.Thickness = 1
-    hStroke.Parent = holder
+    local hStroke = Instance.new("UIStroke", holder); hStroke.Color = THEME.Stroke; hStroke.Thickness = 1
 
     local pill = Instance.new("Frame")
     pill.Size = UDim2.new(0, 42, 0, 22)
@@ -428,93 +427,57 @@ local function AddToggle(page, text, default, callback)
     knob.Parent = pill
     Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
 
-    local function updateVisual()
-        TweenService:Create(pill, TweenInfo.new(0.15), {
-            BackgroundColor3 = state and THEME.Accent or Color3.fromRGB(45, 42, 68),
-        }):Play()
-        TweenService:Create(knob, TweenInfo.new(0.15), {
-            Position = state and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
-        }):Play()
-        TweenService:Create(hStroke, TweenInfo.new(0.15), {
-            Color = state and THEME.Accent or THEME.Stroke,
-        }):Play()
+    local function update()
+        TweenService:Create(pill, TweenInfo.new(0.15), {BackgroundColor3 = state and THEME.Accent or Color3.fromRGB(45, 42, 68)}):Play()
+        TweenService:Create(knob, TweenInfo.new(0.15), {Position = state and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)}):Play()
+        TweenService:Create(hStroke, TweenInfo.new(0.15), {Color = state and THEME.Accent or THEME.Stroke}):Play()
     end
-    updateVisual()
-
+    update()
     holder.MouseButton1Click:Connect(function()
         state = not state
-        updateVisual()
+        update()
         if callback then callback(state) end
     end)
 end
 
-local function AddSlider(page, text, minVal, maxVal, defaultVal, callback)
+local function AddSlider(page, text, min, max, default, callback)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -8, 0, 54)
     frame.BackgroundColor3 = THEME.BgElem
     frame.BackgroundTransparency = 0.15
     frame.Parent = page
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    local fStroke = Instance.new("UIStroke", frame); fStroke.Color = THEME.Stroke; fStroke.Thickness = 1
 
-    local fStroke = Instance.new("UIStroke")
-    fStroke.Color = THEME.Stroke
-    fStroke.Thickness = 1
-    fStroke.Parent = frame
-
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -20, 0, 24)
-    lbl.Position = UDim2.new(0, 10, 0, 4)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text .. ": " .. math.floor(defaultVal)
-    lbl.TextColor3 = THEME.TextMain
-    lbl.Font = Enum.Font.GothamSemibold
-    lbl.TextSize = 12
+    local lbl = Instance.new("TextLabel", frame)
+    lbl.Size = UDim2.new(1, -20, 0, 24); lbl.Position = UDim2.new(0, 10, 0, 4)
+    lbl.BackgroundTransparency = 1; lbl.Text = text .. ": " .. math.floor(default)
+    lbl.TextColor3 = THEME.TextMain; lbl.Font = Enum.Font.GothamSemibold; lbl.TextSize = 12
     lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = frame
 
-    local bar = Instance.new("TextButton")
-    bar.Size = UDim2.new(1, -20, 0, 8)
-    bar.Position = UDim2.new(0, 10, 0, 34)
-    bar.BackgroundColor3 = Color3.fromRGB(42, 38, 62)
-    bar.Text = ""
-    bar.AutoButtonColor = false
-    bar.Parent = frame
+    local bar = Instance.new("TextButton", frame)
+    bar.Size = UDim2.new(1, -20, 0, 8); bar.Position = UDim2.new(0, 10, 0, 34)
+    bar.BackgroundColor3 = Color3.fromRGB(42, 38, 62); bar.Text = ""; bar.AutoButtonColor = false
     Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
 
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new(math.clamp((defaultVal - minVal) / (maxVal - minVal), 0, 1), 0, 1, 0)
+    local fill = Instance.new("Frame", bar)
+    fill.Size = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), 0, 1, 0)
     fill.BackgroundColor3 = THEME.Accent
-    fill.Parent = bar
     Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
-
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, THEME.Accent2),
-        ColorSequenceKeypoint.new(1, THEME.Accent),
-    })
-    gradient.Parent = fill
+    local grad = Instance.new("UIGradient", fill)
+    grad.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, THEME.Accent2), ColorSequenceKeypoint.new(1, THEME.Accent)})
 
     local dragging = false
     local function update(input)
         local pct = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-        local val = math.floor(minVal + (maxVal - minVal) * pct)
+        local val = math.floor(min + (max - min) * pct)
         fill.Size = UDim2.new(pct, 0, 1, 0)
         lbl.Text = text .. ": " .. val
         if callback then callback(val) end
     end
-
-    bar.InputBegan:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            update(inp)
-        end
-    end)
-    UserInputService.InputEnded:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-    end)
-    UserInputService.InputChanged:Connect(function(inp)
-        if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then update(inp) end
-    end)
+    bar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; update(i) end end)
+    UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+    UserInputService.InputChanged:Connect(function(i) if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then update(i) end end)
 end
 
 local function AddButton(page, text, callback)
@@ -529,11 +492,7 @@ local function AddButton(page, text, callback)
     btn.AutoButtonColor = false
     btn.Parent = page
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-
-    local bStroke = Instance.new("UIStroke")
-    bStroke.Color = THEME.Stroke
-    bStroke.Thickness = 1
-    bStroke.Parent = btn
+    local bStroke = Instance.new("UIStroke", btn); bStroke.Color = THEME.Stroke; bStroke.Thickness = 1
 
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.BgHover}):Play()
@@ -543,60 +502,43 @@ local function AddButton(page, text, callback)
         TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.BgElem}):Play()
         TweenService:Create(bStroke, TweenInfo.new(0.15), {Color = THEME.Stroke}):Play()
     end)
-    btn.MouseButton1Click:Connect(function()
-        if callback then callback() end
-    end)
+    btn.MouseButton1Click:Connect(function() if callback then callback() end end)
 end
 
+-- ИСПРАВЛЕНО: Dropdown с ZIndex
 local function AddDropdown(page, text, options, default, callback)
     local holder = Instance.new("Frame")
     holder.Size = UDim2.new(1, -8, 0, 38)
     holder.BackgroundColor3 = THEME.BgElem
     holder.BackgroundTransparency = 0.15
+    holder.ZIndex = 2
     holder.Parent = page
     Instance.new("UICorner", holder).CornerRadius = UDim.new(0, 10)
+    local hStroke = Instance.new("UIStroke", holder); hStroke.Color = THEME.Stroke; hStroke.Thickness = 1
 
-    local hStroke = Instance.new("UIStroke")
-    hStroke.Color = THEME.Stroke
-    hStroke.Thickness = 1
-    hStroke.Parent = holder
+    local btn = Instance.new("TextButton", holder)
+    btn.Size = UDim2.new(1, 0, 1, 0); btn.BackgroundTransparency = 1; btn.Text = ""; btn.AutoButtonColor = false
 
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundTransparency = 1
-    btn.Text = ""
-    btn.AutoButtonColor = false
-    btn.Parent = holder
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 1, 0)
-    label.Position = UDim2.new(0, 12, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text .. ": " .. (default or options[1])
-    label.TextColor3 = THEME.TextMain
-    label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 13
+    local label = Instance.new("TextLabel", holder)
+    label.Size = UDim2.new(1, -20, 1, 0); label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1; label.Text = text .. ": " .. (default or options[1])
+    label.TextColor3 = THEME.TextMain; label.Font = Enum.Font.GothamSemibold; label.TextSize = 13
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = holder
 
-    local arrow = Instance.new("TextLabel")
-    arrow.Size = UDim2.new(0, 20, 1, 0)
-    arrow.Position = UDim2.new(1, -25, 0, 0)
-    arrow.BackgroundTransparency = 1
-    arrow.Text = "▼"
-    arrow.TextColor3 = THEME.TextSub
-    arrow.Font = Enum.Font.GothamBold
-    arrow.TextSize = 10
-    arrow.Parent = holder
+    local arrow = Instance.new("TextLabel", holder)
+    arrow.Size = UDim2.new(0, 20, 1, 0); arrow.Position = UDim2.new(1, -25, 0, 0)
+    arrow.BackgroundTransparency = 1; arrow.Text = "▼"; arrow.TextColor3 = THEME.TextSub
+    arrow.Font = Enum.Font.GothamBold; arrow.TextSize = 10
 
-    local list = Instance.new("Frame")
+    local list = Instance.new("Frame", holder)
     list.Size = UDim2.new(1, 0, 0, #options * 30)
     list.Position = UDim2.new(0, 0, 1, 4)
     list.BackgroundColor3 = THEME.BgSide
     list.BorderSizePixel = 0
     list.Visible = false
-    list.Parent = holder
+    list.ZIndex = 10
     Instance.new("UICorner", list).CornerRadius = UDim.new(0, 10)
+
     local listLayout = Instance.new("UIListLayout", list)
     listLayout.Padding = UDim.new(0, 2)
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -606,13 +548,11 @@ local function AddDropdown(page, text, options, default, callback)
         isOpen = not isOpen
         list.Visible = isOpen
         arrow.Text = isOpen and "▲" or "▼"
-        TweenService:Create(hStroke, TweenInfo.new(0.15), {
-            Color = isOpen and THEME.Accent or THEME.Stroke,
-        }):Play()
+        TweenService:Create(hStroke, TweenInfo.new(0.15), {Color = isOpen and THEME.Accent or THEME.Stroke}):Play()
     end)
 
     for i, opt in ipairs(options) do
-        local row = Instance.new("TextButton")
+        local row = Instance.new("TextButton", list)
         row.Size = UDim2.new(1, -6, 0, 28)
         row.BackgroundColor3 = THEME.BgElem
         row.BackgroundTransparency = 0.4
@@ -622,22 +562,60 @@ local function AddDropdown(page, text, options, default, callback)
         row.TextSize = 12
         row.TextXAlignment = Enum.TextXAlignment.Left
         row.LayoutOrder = i
-        row.Parent = list
+        row.ZIndex = 11
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
-        row.MouseEnter:Connect(function()
-            TweenService:Create(row, TweenInfo.new(0.1), {BackgroundColor3 = THEME.BgHover}):Play()
-        end)
-        row.MouseLeave:Connect(function()
-            TweenService:Create(row, TweenInfo.new(0.1), {BackgroundColor3 = THEME.BgElem}):Play()
-        end)
         row.MouseButton1Click:Connect(function()
             label.Text = text .. ": " .. opt
-            isOpen = false
-            list.Visible = false
-            arrow.Text = "▼"
+            isOpen = false; list.Visible = false; arrow.Text = "▼"
             if callback then callback(opt) end
         end)
     end
+end
+
+-- ИСПРАВЛЕНО: Keybind без утечки + привязка к ToggleKey
+local function AddKeybind(page, text, defaultKey, callback)
+    local holder = Instance.new("Frame")
+    holder.Size = UDim2.new(1, -8, 0, 42)
+    holder.BackgroundColor3 = THEME.BgElem
+    holder.BackgroundTransparency = 0.15
+    holder.Parent = page
+    Instance.new("UICorner", holder).CornerRadius = UDim.new(0, 10)
+
+    local label = Instance.new("TextLabel", holder)
+    label.Size = UDim2.new(1, -100, 1, 0); label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1; label.Text = text
+    label.TextColor3 = THEME.TextMain; label.Font = Enum.Font.GothamSemibold; label.TextSize = 13
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local keyBtn = Instance.new("TextButton", holder)
+    keyBtn.Size = UDim2.new(0, 80, 0, 28); keyBtn.Position = UDim2.new(1, -90, 0.5, -14)
+    keyBtn.BackgroundColor3 = Color3.fromRGB(38, 34, 58); keyBtn.Text = tostring(defaultKey):gsub("Enum.KeyCode.", "")
+    keyBtn.TextColor3 = THEME.AccentGlow; keyBtn.Font = Enum.Font.GothamBold; keyBtn.TextSize = 12
+    keyBtn.AutoButtonColor = false
+    Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 6)
+
+    local currentKey = defaultKey
+    local isListening = false
+    local connection
+
+    keyBtn.MouseButton1Click:Connect(function()
+        isListening = true
+        keyBtn.Text = "..."
+        keyBtn.TextColor3 = THEME.Accent
+        
+        if connection then connection:Disconnect() end
+        connection = UserInputService.InputBegan:Connect(function(input, gp)
+            if gp or not isListening then return end
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                currentKey = input.KeyCode
+                keyBtn.Text = tostring(currentKey):gsub("Enum.KeyCode.", "")
+                keyBtn.TextColor3 = THEME.AccentGlow
+                isListening = false
+                if callback then callback(currentKey) end
+                connection:Disconnect()
+            end
+        end)
+    end)
 end
 
 local function AddTextBox(page, text, default, callback)
@@ -647,120 +625,35 @@ local function AddTextBox(page, text, default, callback)
     holder.BackgroundTransparency = 0.15
     holder.Parent = page
     Instance.new("UICorner", holder).CornerRadius = UDim.new(0, 10)
+    local hStroke = Instance.new("UIStroke", holder); hStroke.Color = THEME.Stroke; hStroke.Thickness = 1
 
-    local hStroke = Instance.new("UIStroke")
-    hStroke.Color = THEME.Stroke
-    hStroke.Thickness = 1
-    hStroke.Parent = holder
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, 100, 1, 0)
-    label.Position = UDim2.new(0, 12, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text .. ":"
-    label.TextColor3 = THEME.TextSub
-    label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 12
+    local label = Instance.new("TextLabel", holder)
+    label.Size = UDim2.new(0, 100, 1, 0); label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1; label.Text = text .. ":"
+    label.TextColor3 = THEME.TextSub; label.Font = Enum.Font.GothamSemibold; label.TextSize = 12
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = holder
 
-    local box = Instance.new("TextBox")
-    box.Size = UDim2.new(1, -120, 1, -8)
-    box.Position = UDim2.new(0, 112, 0, 4)
-    box.BackgroundColor3 = Color3.fromRGB(38, 34, 58)
-    box.BackgroundTransparency = 0.3
-    box.Text = default or ""
-    box.PlaceholderText = "..."
-    box.PlaceholderColor3 = THEME.TextSub
-    box.TextColor3 = THEME.TextMain
-    box.Font = Enum.Font.GothamSemibold
-    box.TextSize = 12
-    box.TextXAlignment = Enum.TextXAlignment.Left
-    box.ClearTextOnFocus = false
-    box.Parent = holder
+    local box = Instance.new("TextBox", holder)
+    box.Size = UDim2.new(1, -120, 1, -8); box.Position = UDim2.new(0, 112, 0, 4)
+    box.BackgroundColor3 = Color3.fromRGB(38, 34, 58); box.BackgroundTransparency = 0.3
+    box.Text = default or ""; box.PlaceholderText = "..."
+    box.PlaceholderColor3 = THEME.TextSub; box.TextColor3 = THEME.TextMain
+    box.Font = Enum.Font.GothamSemibold; box.TextSize = 12
+    box.TextXAlignment = Enum.TextXAlignment.Left; box.ClearTextOnFocus = false
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
-    local pad = Instance.new("UIPadding")
-    pad.PaddingLeft = UDim.new(0, 8)
-    pad.Parent = box
+    local pad = Instance.new("UIPadding", box); pad.PaddingLeft = UDim.new(0, 8)
 
-    box.Focused:Connect(function()
-        TweenService:Create(hStroke, TweenInfo.new(0.15), {Color = THEME.Accent}):Play()
-    end)
+    box.Focused:Connect(function() TweenService:Create(hStroke, TweenInfo.new(0.15), {Color = THEME.Accent}):Play() end)
     box.FocusLost:Connect(function()
         TweenService:Create(hStroke, TweenInfo.new(0.15), {Color = THEME.Stroke}):Play()
         if callback then callback(box.Text) end
     end)
 end
 
-local function AddKeybind(page, text, defaultKey, callback)
-    local holder = Instance.new("Frame")
-    holder.Size = UDim2.new(1, -8, 0, 42)
-    holder.BackgroundColor3 = THEME.BgElem
-    holder.BackgroundTransparency = 0.15
-    holder.Parent = page
-    Instance.new("UICorner", holder).CornerRadius = UDim.new(0, 10)
-
-    local hStroke = Instance.new("UIStroke")
-    hStroke.Color = THEME.Stroke
-    hStroke.Thickness = 1
-    hStroke.Parent = holder
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -100, 1, 0)
-    label.Position = UDim2.new(0, 12, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = THEME.TextMain
-    label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 13
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = holder
-
-    local keyBtn = Instance.new("TextButton")
-    keyBtn.Size = UDim2.new(0, 80, 0, 28)
-    keyBtn.Position = UDim2.new(1, -90, 0.5, -14)
-    keyBtn.BackgroundColor3 = Color3.fromRGB(38, 34, 58)
-    keyBtn.Text = tostring(defaultKey):gsub("Enum.KeyCode.", "")
-    keyBtn.TextColor3 = THEME.AccentGlow
-    keyBtn.Font = Enum.Font.GothamBold
-    keyBtn.TextSize = 12
-    keyBtn.AutoButtonColor = false
-    keyBtn.Parent = holder
-    Instance.new("UICorner", keyBtn).CornerRadius = UDim.new(0, 6)
-
-    local currentKey = defaultKey
-    local isListening = false
-
-    keyBtn.MouseButton1Click:Connect(function()
-        isListening = true
-        keyBtn.Text = "..."
-        keyBtn.TextColor3 = THEME.Accent
-    end)
-
-    UserInputService.InputBegan:Connect(function(input, gp)
-        if gp or not isListening then return end
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            currentKey = input.KeyCode
-            keyBtn.Text = tostring(currentKey):gsub("Enum.KeyCode.", "")
-            keyBtn.TextColor3 = THEME.AccentGlow
-            isListening = false
-            if callback then callback(currentKey) end
-        end
-    end)
-end
-
--- ============================================
 -- УНИВЕРСАЛЬНЫЕ ФУНКЦИИ
--- ============================================
-local Universal = {
-    Noclip = false,
-    AntiAFK = false,
-    Fly = false,
-    flySpeed = 50,
-    Fullbright = false,
-}
+local Universal = { Noclip = false, AntiAFK = false, Fly = false, flySpeed = 50 }
+local originalLighting = {}
 
--- Anti-AFK
 LocalPlayer.Idled:Connect(function()
     if Universal.AntiAFK then
         pcall(function()
@@ -771,7 +664,7 @@ LocalPlayer.Idled:Connect(function()
     end
 end)
 
--- Noclip loop
+-- ИСПРАВЛЕНО: Noclip возвращает коллизии
 RunService.Stepped:Connect(function()
     if Universal.Noclip and LocalPlayer.Character then
         for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
@@ -780,23 +673,42 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- Fullbright
+local function ToggleNoclip(state)
+    Universal.Noclip = state
+    if not state and LocalPlayer.Character then
+        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = true end
+        end
+    end
+end
+
+-- ИСПРАВЛЕНО: Fullbright сохраняет и возвращает оригинал
 local function SetFullbright(state)
     pcall(function()
         if state then
+            originalLighting.Brightness = Lighting.Brightness
+            originalLighting.ClockTime = Lighting.ClockTime
+            originalLighting.FogEnd = Lighting.FogEnd
+            originalLighting.GlobalShadows = Lighting.GlobalShadows
+            originalLighting.Ambient = Lighting.Ambient
+
             Lighting.Brightness = 2
             Lighting.ClockTime = 12
             Lighting.FogEnd = 100000
             Lighting.GlobalShadows = false
+            Lighting.Ambient = Color3.fromRGB(178, 178, 178)
         else
-            Lighting.Brightness = 1
-            Lighting.FogEnd = 1000
-            Lighting.GlobalShadows = true
+            if originalLighting.Brightness then
+                Lighting.Brightness = originalLighting.Brightness
+                Lighting.ClockTime = originalLighting.ClockTime
+                Lighting.FogEnd = originalLighting.FogEnd
+                Lighting.GlobalShadows = originalLighting.GlobalShadows
+                Lighting.Ambient = originalLighting.Ambient
+            end
         end
     end)
 end
 
--- WalkSpeed / JumpPower
 local function SetSpeed(val)
     pcall(function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -813,7 +725,7 @@ local function SetJump(val)
     end)
 end
 
--- Fly (простой, BodyGyro + BodyVelocity)
+-- Fly
 local flyConnection
 local function ToggleFly(state)
     Universal.Fly = state
@@ -824,18 +736,8 @@ local function ToggleFly(state)
 
     if state then
         hum.PlatformStand = true
-        local bg = Instance.new("BodyGyro")
-        bg.P = 9e4
-        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-        bg.CFrame = hrp.CFrame
-        bg.Name = "NeonFlyBG"
-        bg.Parent = hrp
-
-        local bv = Instance.new("BodyVelocity")
-        bv.Velocity = Vector3.new(0, 0, 0)
-        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-        bv.Name = "NeonFlyBV"
-        bv.Parent = hrp
+        local bg = Instance.new("BodyGyro"); bg.P = 9e4; bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9); bg.CFrame = hrp.CFrame; bg.Name = "NeonFlyBG"; bg.Parent = hrp
+        local bv = Instance.new("BodyVelocity"); bv.Velocity = Vector3.new(0, 0, 0); bv.MaxForce = Vector3.new(9e9, 9e9, 9e9); bv.Name = "NeonFlyBV"; bv.Parent = hrp
 
         flyConnection = RunService.RenderStepped:Connect(function()
             if not Universal.Fly then return end
@@ -853,56 +755,41 @@ local function ToggleFly(state)
     else
         if flyConnection then flyConnection:Disconnect() end
         hum.PlatformStand = false
-        local bg = hrp:FindFirstChild("NeonFlyBG")
-        local bv = hrp:FindFirstChild("NeonFlyBV")
-        if bg then bg:Destroy() end
-        if bv then bv:Destroy() end
+        local bg = hrp:FindFirstChild("NeonFlyBG"); if bg then bg:Destroy() end
+        local bv = hrp:FindFirstChild("NeonFlyBV"); if bv then bv:Destroy() end
     end
 end
 
--- ============================================
--- ВКЛАДКИ И ФУНКЦИИ
--- ============================================
+-- ВКЛАДКИ
 local tabMovement = CreateTab("Movement")
 local tabVisuals = CreateTab("Visuals")
 local tabMisc = CreateTab("Misc")
 local tabSettings = CreateTab("Settings")
 
--- Movement
 AddSection(tabMovement, "CHARACTER")
 AddSlider(tabMovement, "WalkSpeed", 16, 300, 16, function(v) SetSpeed(v) end)
 AddSlider(tabMovement, "JumpPower", 50, 300, 50, function(v) SetJump(v) end)
 AddToggle(tabMovement, "Fly", false, function(s) ToggleFly(s) end)
 AddSlider(tabMovement, "Fly Speed", 10, 200, 50, function(v) Universal.flySpeed = v end)
-AddToggle(tabMovement, "Noclip", false, function(s) Universal.Noclip = s end)
+AddToggle(tabMovement, "Noclip", false, function(s) ToggleNoclip(s) end)
 
--- Visuals
 AddSection(tabVisuals, "LIGHTING")
-AddToggle(tabVisuals, "Fullbright", false, function(s)
-    Universal.Fullbright = s
-    SetFullbright(s)
-end)
+AddToggle(tabVisuals, "Fullbright", false, function(s) SetFullbright(s) end)
 AddSection(tabVisuals, "CAMERA")
-AddSlider(tabVisuals, "FOV", 70, 120, 70, function(v)
-    pcall(function() workspace.CurrentCamera.FieldOfView = v end)
-end)
+AddSlider(tabVisuals, "FOV", 70, 120, 70, function(v) pcall(function() workspace.CurrentCamera.FieldOfView = v end) end)
 
--- Misc
 AddSection(tabMisc, "UTILITY")
 AddToggle(tabMisc, "Anti-AFK", false, function(s) Universal.AntiAFK = s end)
 AddButton(tabMisc, "Rejoin Server", function()
-    pcall(function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
-    end)
+    pcall(function() game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) end)
 end)
 AddButton(tabMisc, "Server Hop", function()
     pcall(function()
         local Http = game:GetService("HttpService")
         local Teleport = game:GetService("TeleportService")
         local servers = Http:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
-        local currJob = game.JobId
         for _, srv in ipairs(servers.data) do
-            if srv.id ~= currJob and srv.playing < srv.maxPlayers then
+            if srv.id ~= game.JobId and srv.playing < srv.maxPlayers then
                 Teleport:TeleportToPlaceInstance(game.PlaceId, srv.id, LocalPlayer)
                 return
             end
@@ -910,19 +797,22 @@ AddButton(tabMisc, "Server Hop", function()
     end)
 end)
 
--- Settings
 AddSection(tabSettings, "CONFIG")
-AddKeybind(tabSettings, "Toggle Menu", Enum.KeyCode.RightControl, function(key)
-    Notify("Keybind", "Menu toggle set to " .. tostring(key):gsub("Enum.KeyCode.", ""), "info")
+-- ИСПРАВЛЕНО: AddKeybind теперь меняет ToggleKey
+AddKeybind(tabSettings, "Toggle Menu", ToggleKey, function(key)
+    ToggleKey = key
+    Notify("Keybind", "Menu set to " .. tostring(key):gsub("Enum.KeyCode.", ""), "info")
 end)
 AddTextBox(tabSettings, "Custom Status", "", function(text)
     DockTitle.Text = text ~= "" and text or "NEON CORE"
 end)
-AddLabel(tabSettings, "Version 2.0 — Stealth Edition")
+AddButton(tabSettings, "Save Config", function()
+    SaveConfig()
+    Notify("Config", "Settings saved", "success")
+end)
+AddLabel(tabSettings, "Version 3.0 — Fixed & Enhanced")
 
--- ============================================
--- FPS COUNTER
--- ============================================
+-- FPS
 local lastTime = os.clock()
 local frameCount = 0
 RunService.RenderStepped:Connect(function()
@@ -934,19 +824,14 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ============================================
--- ХОТКЕЙ (RightControl — скрыть/показать)
--- ============================================
+-- ИСПРАВЛЕНО: Хоткей привязан к ToggleKey
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
-    if input.KeyCode == Enum.KeyCode.RightControl then
+    if input.KeyCode == ToggleKey then
         isFullyHidden = not isFullyHidden
         MainFrame.Visible = not isFullyHidden
-        if not isFullyHidden and not isExpanded then
-            -- если скрыто, показываем пилюлю
-        end
     end
 end)
 
-Notify("NEON CORE", "Loaded successfully. RightControl to hide.", "success")
-print("=== NEON CORE v2 READY ===")
+Notify("NEON CORE", "Loaded. RightControl to hide.", "success")
+print("=== NEON CORE v3 READY ===")
