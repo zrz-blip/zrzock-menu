@@ -1,3 +1,6 @@
+-- ============================================
+-- ZRZOCKS HUB (Main)
+-- ============================================
 local GITHUB_USER = "zrz-blip"
 local GITHUB_REPO = "zrzock-menu"
 local GITHUB_BRANCH = "main"
@@ -9,35 +12,21 @@ local CATALOG = {
         Key = "infinite_tower_tycoon",
         Name = "Infinite Tower Tycoon",
         Places = { 10272636261 },
-        Universe = nil,
         Script = "scripts/InfiniteTowerTycoon.lua",
         Listed = true,
-        Tone = Color3.fromRGB(255, 180, 80),
+        Tone = Color3.fromRGB(225, 25, 45),
         Image = "rbxassetid://106109636799806",
     },
     {
         Key = "silly_sword_game",
         Name = "Silly Sword Game",
         Places = { 10697845123 },
-        Universe = nil,
         Script = "scripts/SillySwordGame.lua",
         Listed = true,
-        Tone = Color3.fromRGB(255, 100, 100),
+        Tone = Color3.fromRGB(225, 25, 45),
         Image = "rbxassetid://0",
     },
 }
-
-local function matchPlace(placeId, universeId)
-    for _, entry in ipairs(CATALOG) do
-        if entry.Universe and entry.Universe == universeId then return entry end
-    end
-    for _, entry in ipairs(CATALOG) do
-        for _, id in ipairs(entry.Places) do
-            if id == placeId then return entry end
-        end
-    end
-    return nil
-end
 
 local function launch(entry)
     local url = BASE_URL .. entry.Script
@@ -47,25 +36,32 @@ local function launch(entry)
     return ok, result
 end
 
+-- Загрузка библиотеки
 local UI_URL = BASE_URL .. "ui/ZrzocksUI.lua"
-local ZrzocksUI = loadstring(game:HttpGet(UI_URL), "@ZrzocksUI")()
+local ok, ZrzocksUI = pcall(function()
+    return loadstring(game:HttpGet(UI_URL), "@ZrzocksUI")()
+end)
+if not ok then
+    error("[Zrzocks Hub] UI library failed to load: " .. tostring(ZrzocksUI))
+end
 
 local menu = ZrzocksUI:CreateMenu({
-    Name = "Zrzocks Hub",
-    Icon = "⚡",
+    Name = "Overwrite Hub",
+    Icon = "✖",
     Size = UDim2.fromOffset(600, 420),
-    ToggleKey = Enum.KeyCode.LeftControl,
+    ToggleKey = Enum.KeyCode.RightControl,
 })
 
 local scriptsTab = menu:AddTab("Scripts")
 local miscTab = menu:AddTab("Misc")
 
 menu:Notify({
-    Title = "Zrzocks Hub",
-    Description = "Welcome!",
+    Title = "OVERWRITE",
+    Description = "Loaded successfully.",
     Duration = 3,
 })
 
+-- Заполнение каталога
 for _, entry in ipairs(CATALOG) do
     if entry.Listed then
         menu:AddCard({
@@ -73,20 +69,19 @@ for _, entry in ipairs(CATALOG) do
             Image = entry.Image,
             Tone = entry.Tone,
             PlaceId = entry.Places[1],
-            ButtonText = "Run",
+            ButtonText = "RUN",
             Callback = function()
                 menu:Notify({
-                    Title = "Zrzocks Hub",
+                    Title = "OVERWRITE",
                     Description = "Starting " .. entry.Name,
                     Duration = 3,
                 })
                 task.spawn(function()
-                    local ok, err = launch(entry)
-                    if not ok then
+                    local success, err = launch(entry)
+                    if not success then
                         menu:Notify({
                             Title = "Error",
                             Description = tostring(err),
-                            Tone = "Danger",
                             Duration = 8,
                         })
                     end
@@ -96,11 +91,14 @@ for _, entry in ipairs(CATALOG) do
     end
 end
 
+-- ============================================
+-- ESP (Misc)
+-- ============================================
 local espEnabled = false
-local espColor = Color3.fromRGB(255, 0, 0)
+local espColor = Color3.fromRGB(225, 25, 45)
 
 local ESPFolder = Instance.new("Folder")
-ESPFolder.Name = "ESP"
+ESPFolder.Name = "Overwrite_ESP"
 ESPFolder.Parent = game:GetService("CoreGui")
 
 local function createESP(player)
@@ -115,7 +113,6 @@ local function createESP(player)
     holder:ClearAllChildren()
 
     local highlight = Instance.new("Highlight")
-    highlight.Name = "Highlight"
     highlight.Adornee = player.Character
     highlight.FillColor = espColor
     highlight.OutlineColor = espColor
@@ -127,7 +124,6 @@ local function createESP(player)
     local head = player.Character:FindFirstChild("Head")
     if head then
         local nameTag = Instance.new("BillboardGui")
-        nameTag.Name = "NameTag"
         nameTag.Size = UDim2.new(0, 200, 0, 50)
         nameTag.AlwaysOnTop = true
         nameTag.StudsOffset = Vector3.new(0, 3, 0)
@@ -142,7 +138,7 @@ local function createESP(player)
         tag.TextStrokeColor3 = Color3.new(0, 0, 0)
         tag.TextStrokeTransparency = 0.4
         tag.Text = player.Name
-        tag.Font = Enum.Font.SourceSansBold
+        tag.Font = Enum.Font.Code
         tag.Parent = nameTag
     end
 end
@@ -172,116 +168,75 @@ game:GetService("Players").PlayerRemoving:Connect(function(player)
     if holder then holder:Destroy() end
 end)
 
-local yMisc = 5
+-- ============================================
+-- UI Elements (Misc)
+-- ============================================
+menu:AddLabel("Misc", "--- ESP ---")
 
-local function addLabel(text, y)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, 0, 0, 16)
-    lbl.Position = UDim2.new(0, 0, 0, y)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(255, 200, 100)
-    lbl.TextScaled = true
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = miscTab
-    return lbl
-end
+local espBtn = menu:AddButton("Misc", {
+    Text = "ESP: OFF",
+    Callback = function(btn)
+        if espEnabled then
+            disableESP()
+            btn.Text = "ESP: OFF"
+            btn.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
+        else
+            enableESP()
+            btn.Text = "ESP: ON"
+            btn.BackgroundColor3 = Color3.fromRGB(225, 25, 45)
+        end
+    end,
+})
 
-local function addBtn(text, y, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 26)
-    btn.Position = UDim2.new(0.05, 0, 0, y)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-    btn.BorderSizePixel = 0
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextScaled = true
-    btn.Font = Enum.Font.GothamBold
-    btn.Parent = miscTab
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
-    btn.MouseButton1Click:Connect(callback)
-    return btn
-end
+menu:AddLabel("Misc", "--- SPEED ---")
+menu:AddTextBox("Misc", {
+    Label = "Speed",
+    Text = "16",
+    Callback = function(val)
+        local num = tonumber(val)
+        if num and num > 0 then
+            pcall(function()
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num
+            end)
+        end
+    end,
+})
 
-local function addBox(text, y, callback)
-    local box = Instance.new("TextBox")
-    box.Size = UDim2.new(0.9, 0, 0, 22)
-    box.Position = UDim2.new(0.05, 0, 0, y)
-    box.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-    box.TextColor3 = Color3.fromRGB(255, 255, 255)
-    box.Text = text
-    box.TextScaled = true
-    box.Font = Enum.Font.GothamBold
-    box.Parent = miscTab
-    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 4)
-    box.FocusLost:Connect(function()
-        callback(box.Text)
-    end)
-    return box
-end
+menu:AddLabel("Misc", "--- JUMP ---")
+menu:AddTextBox("Misc", {
+    Label = "Jump",
+    Text = "50",
+    Callback = function(val)
+        local num = tonumber(val)
+        if num and num > 0 then
+            pcall(function()
+                game.Players.LocalPlayer.Character.Humanoid.UseJumpPower = true
+                game.Players.LocalPlayer.Character.Humanoid.JumpPower = num
+            end)
+        end
+    end,
+})
 
-addLabel("ESP", yMisc)
-yMisc = yMisc + 20
-
-local espBtn = addBtn("ESP (OFF)", yMisc, function()
-    if espEnabled then
-        disableESP()
-        espBtn.Text = "ESP (OFF)"
-        espBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-    else
-        enableESP()
-        espBtn.Text = "ESP (ON)"
-        espBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
-    end
-end)
-yMisc = yMisc + 30
-
-addLabel("Speed", yMisc)
-yMisc = yMisc + 20
-
-addBox("100", yMisc, function(val)
-    local num = tonumber(val)
-    if num and num > 0 then
-        pcall(function()
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = num
-        end)
-    end
-end)
-yMisc = yMisc + 26
-
-addLabel("Jump Power", yMisc)
-yMisc = yMisc + 20
-
-addBox("50", yMisc, function(val)
-    local num = tonumber(val)
-    if num and num > 0 then
-        pcall(function()
-            game.Players.LocalPlayer.Character.Humanoid.JumpPower = num
-        end)
-    end
-end)
-yMisc = yMisc + 26
-
+menu:AddLabel("Misc", "--- NOCLIP ---")
 local noclipEnabled = false
-local noclipBtn = addBtn("NOCLIP (OFF)", yMisc, function()
-    noclipEnabled = not noclipEnabled
-    noclipBtn.Text = noclipEnabled and "NOCLIP (ON)" or "NOCLIP (OFF)"
-    noclipBtn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(30, 30, 50)
-    if noclipEnabled then
-        task.spawn(function()
-            while noclipEnabled do
-                task.wait(0.1)
-                local char = game.Players.LocalPlayer.Character
-                if char then
-                    for _, part in pairs(char:GetChildren()) do
-                        if part:IsA("BasePart") then part.CanCollide = false end
+menu:AddButton("Misc", {
+    Text = "Noclip: OFF",
+    Callback = function(btn)
+        noclipEnabled = not noclipEnabled
+        btn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
+        btn.BackgroundColor3 = noclipEnabled and Color3.fromRGB(225, 25, 45) or Color3.fromRGB(24, 24, 28)
+        if noclipEnabled then
+            task.spawn(function()
+                while noclipEnabled do
+                    task.wait(0.1)
+                    local char = game.Players.LocalPlayer.Character
+                    if char then
+                        for _, part in pairs(char:GetChildren()) do
+                            if part:IsA("BasePart") then part.CanCollide = false end
+                        end
                     end
                 end
-            end
-        end)
-    end
-end)
-yMisc = yMisc + 30
-
-miscTab.CanvasSize = UDim2.new(0, 0, 0, yMisc + 20)
+            end)
+        end
+    end,
+})
