@@ -1,5 +1,5 @@
 -- ============================================
--- ZRZOCKS HUB (Main)
+-- ZRZOCKS HUB (Main v2.3)
 -- ============================================
 local GITHUB_USER = "zrz-blip"
 local GITHUB_REPO = "zrzock-menu"
@@ -8,6 +8,7 @@ local BASE_URL = string.format("https://raw.githubusercontent.com/%s/%s/refs/hea
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
 
 -- Безопасная загрузка UI
 local UI_URL = BASE_URL .. "ui/ZrzocksUI.lua"
@@ -15,9 +16,24 @@ local ok, ZrzocksUI = pcall(function() return loadstring(game:HttpGet(UI_URL), "
 if not ok then error("[Zrzocks Hub] UI failed: " .. tostring(ZrzocksUI)) end
 
 local CATALOG = {
-    { Key = "infinite_tower_tycoon", Name = "Infinite Tower Tycoon", Places = { 10272636261 }, Script = "scripts/InfiniteTowerTycoon.lua", Listed = true, Tone = Color3.fromRGB(225, 25, 45), Image = "rbxassetid://106109636799806" },
-    { Key = "silly_sword_game", Name = "Silly Sword Game", Places = { 10697845123 }, Script = "scripts/SillySwordGame.lua", Listed = true, Tone = Color3.fromRGB(225, 25, 45), Image = "rbxassetid://0" },
+    { Key = "infinite_tower_tycoon", Name = "Infinite Tower Tycoon", Places = { 10272636261 }, Universe = nil, Script = "scripts/InfiniteTowerTycoon.lua", Listed = true, Tone = Color3.fromRGB(225, 25, 45), Image = "rbxassetid://106109636799806" },
+    { Key = "silly_sword_game", Name = "Silly Sword Game", Places = { 10697845123 }, Universe = nil, Script = "scripts/SillySwordGame.lua", Listed = true, Tone = Color3.fromRGB(225, 25, 45), Image = "rbxassetid://0" },
 }
+
+-- ============================================
+-- АВТОЗАПУСК
+-- ============================================
+local function matchPlace(placeId, universeId)
+    for _, entry in ipairs(CATALOG) do
+        if entry.Universe and entry.Universe == universeId then return entry end
+    end
+    for _, entry in ipairs(CATALOG) do
+        for _, id in ipairs(entry.Places) do
+            if id == placeId then return entry end
+        end
+    end
+    return nil
+end
 
 local function launch(entry)
     local url = BASE_URL .. entry.Script
@@ -25,10 +41,13 @@ local function launch(entry)
     return success, result
 end
 
+-- ============================================
+-- МЕНЮ
+-- ============================================
+-- Убран Size, как просил ревьюер
 local menu = ZrzocksUI:CreateMenu({
     Name = "Overwrite Hub",
     Icon = "✖",
-    Size = UDim2.fromOffset(340, 46), -- Начальный компактный размер
     ToggleKey = Enum.KeyCode.RightControl,
 })
 
@@ -36,6 +55,16 @@ local scriptsTab = menu:AddTab("Scripts")
 local miscTab = menu:AddTab("Misc")
 
 menu:Notify({ Title = "OVERWRITE", Description = "Loaded successfully.", Duration = 3 })
+
+-- Автозапуск при заходе
+local matchedEntry = matchPlace(game.PlaceId, game.GameId)
+if matchedEntry then
+    menu:Notify({ Title = "AUTO-LAUNCH", Description = "Found script for this game: " .. matchedEntry.Name, Duration = 5 })
+    task.spawn(function()
+        local success, err = launch(matchedEntry)
+        if not success then menu:Notify({ Title = "Error", Description = tostring(err), Duration = 8 }) end
+    end)
+end
 
 -- Заполнение каталога
 for _, entry in ipairs(CATALOG) do
@@ -59,19 +88,17 @@ end
 local espEnabled = false
 local espColor = Color3.fromRGB(225, 25, 45)
 
--- Безопасное создание папки (фоллбэк на PlayerGui для Xeno)
 local ESPFolder = Instance.new("Folder")
 ESPFolder.Name = "Overwrite_ESP"
 local okHui, hui = pcall(gethui)
-if okHui and hui then
-    ESPFolder.Parent = hui
+if okHui and hui then ESPFolder.Parent = hui
 else
-    local pg = Players.LocalPlayer:FindFirstChild("PlayerGui")
+    local pg = LocalPlayer:FindFirstChild("PlayerGui")
     if pg then ESPFolder.Parent = pg else ESPFolder.Parent = CoreGui end
 end
 
 local function createESP(player)
-    if player == Players.LocalPlayer or not player.Character then return end
+    if player == LocalPlayer or not player.Character then return end
     local holder = ESPFolder:FindFirstChild(player.Name) or Instance.new("Folder", ESPFolder)
     holder.Name = player.Name
     holder:ClearAllChildren()
@@ -117,10 +144,24 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 -- ============================================
--- Misc Elements
+-- MISC (Сохранение скорости/прыжка)
 -- ============================================
+local savedSpeed = 16
+local savedJump = 50
+
+-- ИСПРАВЛЕНО: Переприменение скорости и прыжка после респавна
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(1)
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed = savedSpeed
+        hum.UseJumpPower = true
+        hum.JumpPower = savedJump
+    end
+end)
+
 menu:AddLabel("Misc", "--- ESP ---")
-local espBtn = menu:AddButton("Misc", {
+menu:AddButton("Misc", {
     Text = "ESP: OFF",
     Callback = function(btn)
         if espEnabled then
@@ -140,7 +181,10 @@ menu:AddTextBox("Misc", {
     Label = "Speed", Text = "16",
     Callback = function(val)
         local num = tonumber(val)
-        if num and num > 0 then pcall(function() Players.LocalPlayer.Character.Humanoid.WalkSpeed = num end) end
+        if num and num > 0 then
+            savedSpeed = num
+            pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = num end)
+        end
     end,
 })
 
@@ -149,7 +193,13 @@ menu:AddTextBox("Misc", {
     Label = "Jump", Text = "50",
     Callback = function(val)
         local num = tonumber(val)
-        if num and num > 0 then pcall(function() Players.LocalPlayer.Character.Humanoid.UseJumpPower = true; Players.LocalPlayer.Character.Humanoid.JumpPower = num end) end
+        if num and num > 0 then
+            savedJump = num
+            pcall(function()
+                LocalPlayer.Character.Humanoid.UseJumpPower = true
+                LocalPlayer.Character.Humanoid.JumpPower = num
+            end)
+        end
     end,
 })
 
@@ -165,18 +215,16 @@ menu:AddButton("Misc", {
             task.spawn(function()
                 while noclipEnabled do
                     task.wait(0.1)
-                    local char = Players.LocalPlayer.Character
+                    local char = LocalPlayer.Character
                     if char then
                         for _, part in pairs(char:GetChildren()) do
-                            -- ИСПРАВЛЕНО: Возвращен CanCollide
                             if part:IsA("BasePart") then part.CanCollide = false end
                         end
                     end
                 end
             end)
         else
-            -- При выключении возвращаем коллизию
-            local char = Players.LocalPlayer.Character
+            local char = LocalPlayer.Character
             if char then
                 for _, part in pairs(char:GetChildren()) do
                     if part:IsA("BasePart") then part.CanCollide = true end
