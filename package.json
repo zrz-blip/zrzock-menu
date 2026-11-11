@@ -1,5 +1,5 @@
 -- ============================================
--- OVERWRITE HUB v5 (Cross!Sans Style)
+-- OVERWRITE HUB v6 (Cross Style + Fixes)
 -- ============================================
 print("=== OVERWRITE HUB LOADING ===")
 
@@ -42,15 +42,15 @@ end)
 getgenv().__OverwriteLoaded = ScreenGui
 
 -- ============================================
--- ТЕМА: OVERWRITE (Cross!Sans)
+-- ТЕМА
 -- ============================================
 local THEME = {
     BgGlass    = Color3.fromRGB(10, 10, 12),
     BgSide     = Color3.fromRGB(16, 16, 20),
     BgElem     = Color3.fromRGB(24, 24, 28),
     BgHover    = Color3.fromRGB(36, 36, 42),
-    Accent     = Color3.fromRGB(225, 25, 45),   -- Алый
-    Accent2    = Color3.fromRGB(245, 245, 250), -- Холодный белый
+    Accent     = Color3.fromRGB(225, 25, 45),
+    Accent2    = Color3.fromRGB(245, 245, 250),
     AccentGlow = Color3.fromRGB(255, 60, 80),
     Danger     = Color3.fromRGB(200, 20, 40),
     Success    = Color3.fromRGB(235, 235, 240),
@@ -60,16 +60,23 @@ local THEME = {
 }
 
 -- ============================================
--- CONFIG
+-- CONFIG (ИСПРАВЛЕНО: Fly не сохраняется)
 -- ============================================
 local Config = {
     WalkSpeed = 16, JumpPower = 50, FlySpeed = 50, FOV = 70,
-    Noclip = false, Fullbright = false, AntiAFK = false, CustomStatus = "OVERWRITE"
+    Noclip = false, Fullbright = false, AntiAFK = false, CustomStatus = "OVERWRITE",
+    Fly = false -- Добавлено для UI, но не сохраняется
 }
 local ConfigPath = "Overwrite_Config.json"
 
 local function SaveConfig()
-    pcall(function() if writefile then writefile(ConfigPath, HttpService:JSONEncode(Config)) end end)
+    pcall(function()
+        local saveData = {}
+        for k, v in pairs(Config) do
+            if k ~= "Fly" then saveData[k] = v end -- Fly не сохраняем
+        end
+        if writefile then writefile(ConfigPath, HttpService:JSONEncode(saveData)) end
+    end)
 end
 
 local function LoadConfig()
@@ -81,6 +88,7 @@ local function LoadConfig()
                 for k, v in pairs(decoded) do Config[k] = v end
             end
         end
+        Config.Fly = false -- Принудительно сбрасываем Fly при загрузке
     end)
 end
 LoadConfig()
@@ -112,7 +120,7 @@ local function Notify(title, message, kind)
     frame.Size = UDim2.new(1, 0, 0, 60)
     frame.BackgroundColor3 = THEME.BgGlass
     frame.BackgroundTransparency = 0.1
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4) -- Острые углы
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 4)
 
     local stroke = Instance.new("UIStroke", frame); stroke.Color = color; stroke.Thickness = 1.5; stroke.Transparency = 0.3
     local bar = Instance.new("Frame", frame); bar.Size = UDim2.new(0, 4, 1, -12); bar.Position = UDim2.new(0, 6, 0, 6); bar.BackgroundColor3 = color
@@ -145,9 +153,8 @@ MainFrame.Position = UDim2.new(0.5, -170, 0, 16)
 MainFrame.BackgroundColor3 = THEME.BgGlass
 MainFrame.BackgroundTransparency = 0.05
 MainFrame.ClipsDescendants = true
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6) -- Острые углы
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
 
--- ДИАГОНАЛЬНЫЙ ГРАДИЕНТ НА ОБВОДКЕ
 local MainStroke = Instance.new("UIStroke", MainFrame)
 MainStroke.Thickness = 1.5
 MainStroke.Transparency = 0.2
@@ -162,7 +169,6 @@ local TopBar = Instance.new("Frame", MainFrame)
 TopBar.Size = UDim2.new(1, 0, 0, 46)
 TopBar.BackgroundTransparency = 1
 
--- DRAG
 local dragging, dragStart, startPos
 AddConnection(TopBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -185,8 +191,8 @@ PulseDot.Position = UDim2.new(0, 18, 0.5, -5)
 PulseDot.BackgroundColor3 = THEME.Accent
 Instance.new("UICorner", PulseDot).CornerRadius = UDim.new(1, 0)
 
--- Глитч-пульсация (резкая красная вспышка)
-AddConnection(task.spawn(function()
+-- ИСПРАВЛЕНО: Убран AddConnection вокруг task.spawn
+task.spawn(function()
     while PulseDot.Parent do
         TweenService:Create(PulseDot, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {BackgroundColor3 = THEME.Accent2, Size = UDim2.new(0, 12, 0, 12)}):Play()
         task.wait(0.1)
@@ -194,7 +200,7 @@ AddConnection(task.spawn(function()
         TweenService:Create(PulseDot, TweenInfo.new(0.4, Enum.EasingStyle.Linear), {BackgroundColor3 = THEME.Accent, Size = UDim2.new(0, 10, 0, 10)}):Play()
         task.wait(0.8)
     end
-end))
+end)
 
 local DockTitle = Instance.new("TextLabel", TopBar)
 DockTitle.Size = UDim2.new(0, 200, 1, 0); DockTitle.Position = UDim2.new(0, 38, 0, 0)
@@ -228,7 +234,6 @@ local Sidebar = Instance.new("Frame", BodyContainer)
 Sidebar.Size = UDim2.new(0, 130, 1, 0); Sidebar.BackgroundColor3 = THEME.BgSide; Sidebar.BackgroundTransparency = 0.1
 Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 6)
 
--- ПОРТРЕТ АВАТАРА В САЙДБАРЕ
 local avatarFrame = Instance.new("Frame", Sidebar)
 avatarFrame.Size = UDim2.new(0, 80, 0, 80)
 avatarFrame.Position = UDim2.new(0.5, -40, 0, 10)
@@ -283,7 +288,6 @@ local function ToggleDockState(forceState)
     end
 end
 AddConnection(ExpandBtn.MouseButton1Click:Connect(function()
-    -- Глитч-вспышка при нажатии
     TweenService:Create(MainStroke, TweenInfo.new(0.05), {Transparency = 0}):Play()
     task.wait(0.05)
     TweenService:Create(MainStroke, TweenInfo.new(0.2), {Transparency = 0.2}):Play()
@@ -430,6 +434,7 @@ local function AddKeybind(page, text, defaultKey, callback)
                 tempConn:Disconnect()
             end
         end)
+        AddConnection(tempConn) -- ИСПРАВЛЕНО: Добавлено в Connections для очистки
     end))
 end
 
@@ -541,6 +546,21 @@ AddConnection(LocalPlayer.CharacterAdded:Connect(function()
     if Universal.Fly then ToggleFly(false); task.wait(0.2); ToggleFly(true) end
 end))
 
+-- ИСПРАВЛЕНО: Принудительное удержание скорости
+AddConnection(RunService.Heartbeat:Connect(function()
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then
+            if hum.WalkSpeed ~= Config.WalkSpeed then
+                hum.WalkSpeed = Config.WalkSpeed
+            end
+            if hum.JumpPower ~= Config.JumpPower and hum.UseJumpPower then
+                hum.JumpPower = Config.JumpPower
+            end
+        end
+    end
+end))
+
 -- ============================================
 -- ВКЛАДКИ
 -- ============================================
@@ -578,7 +598,7 @@ AddSection(tabSettings, "CONFIG")
 AddKeybind(tabSettings, "Toggle Menu", ToggleKey, function(key) ToggleKey = key; Notify("Keybind", "Menu set to " .. tostring(key):gsub("Enum.KeyCode.", ""), "info") end)
 AddTextBox(tabSettings, "Custom Status", Config.CustomStatus, function(text) Config.CustomStatus = text; DockTitle.Text = text ~= "" and text or "OVERWRITE" end)
 AddButton(tabSettings, "Save Config", function() SaveConfig(); Notify("Config", "Settings saved", "success") end)
-AddLabel(tabSettings, "OVERWRITE v5.0 — Cross Style")
+AddLabel(tabSettings, "OVERWRITE v6.0 — Cross Style")
 
 -- FPS
 local lastTime = os.clock()
@@ -601,4 +621,4 @@ AddConnection(CloseBtn.MouseButton1Click:Connect(function()
 end))
 
 Notify("OVERWRITE", "Loaded. RightControl to hide.", "success")
-print("=== OVERWRITE HUB READY ===")
+print("=== OVERWRITE HUB v6 READY ===")
