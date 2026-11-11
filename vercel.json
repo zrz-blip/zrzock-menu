@@ -1,367 +1,125 @@
-local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
-if CoreGui:FindFirstChild("GlassDock_Hub") then
-    CoreGui.GlassDock_Hub:Destroy()
+if CoreGui:FindFirstChild("Template_CompactDock") then
+    CoreGui.Template_CompactDock:Destroy()
 end
 
-local THEME = {
-    BgGlass = Color3.fromRGB(15, 17, 23),
-    BgSidebar = Color3.fromRGB(20, 23, 32),
-    BgElement = Color3.fromRGB(25, 29, 40),
-    BgHover = Color3.fromRGB(34, 39, 54),
-    Accent = Color3.fromRGB(65, 145, 255),
-    AccentGlow = Color3.fromRGB(105, 175, 255),
-    Danger = Color3.fromRGB(230, 65, 75),
-    TextMain = Color3.fromRGB(242, 245, 252),
-    TextSub = Color3.fromRGB(155, 165, 185),
-    Stroke = Color3.fromRGB(55, 65, 88)
-}
-
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "GlassDock_Hub"
+ScreenGui.Name = "Template_CompactDock"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = CoreGui
 
-local isExpanded = false
+local expanded = false
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 310, 0, 44)
-MainFrame.Position = UDim2.new(0.5, -155, 0, 14)
-MainFrame.BackgroundColor3 = THEME.BgGlass
-MainFrame.BackgroundTransparency = 0.1
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 22)
+local Dock = Instance.new("Frame")
+Dock.Size = UDim2.new(0, 290, 0, 42)
+Dock.Position = UDim2.new(0.5, -145, 0, 14)
+Dock.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
+Dock.BorderSizePixel = 0
+Dock.ClipsDescendants = true
+Dock.Active = true
+Dock.Draggable = true
+Dock.Parent = ScreenGui
+Instance.new("UICorner", Dock).CornerRadius = UDim.new(0, 21)
 
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = THEME.Accent
-MainStroke.Transparency = 0.35
-MainStroke.Thickness = 1.5
-MainStroke.Parent = MainFrame
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(0, 230, 150)
+Stroke.Thickness = 1.4
+Stroke.Parent = Dock
 
--- TOP DOCK BAR (DYNAMIC ISLAND)
 local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 44)
+TopBar.Size = UDim2.new(1, 0, 0, 42)
 TopBar.BackgroundTransparency = 1
-TopBar.Parent = MainFrame
+TopBar.Parent = Dock
 
-local PulseDot = Instance.new("Frame")
-PulseDot.Size = UDim2.new(0, 9, 0, 9)
-PulseDot.Position = UDim2.new(0, 16, 0.5, -4)
-PulseDot.BackgroundColor3 = THEME.AccentGlow
-PulseDot.BorderSizePixel = 0
-PulseDot.Parent = TopBar
-Instance.new("UICorner", PulseDot).CornerRadius = UDim.new(1, 0)
+local StatusDot = Instance.new("Frame")
+StatusDot.Size = UDim2.new(0, 8, 0, 8)
+StatusDot.Position = UDim2.new(0, 16, 0.5, -4)
+StatusDot.BackgroundColor3 = Color3.fromRGB(0, 230, 150)
+StatusDot.Parent = TopBar
+Instance.new("UICorner", StatusDot).CornerRadius = UDim.new(1, 0)
 
-local DockTitle = Instance.new("TextLabel")
-DockTitle.Size = UDim2.new(0, 185, 1, 0)
-DockTitle.Position = UDim2.new(0, 33, 0, 0)
-DockTitle.BackgroundTransparency = 1
-DockTitle.Text = "GLASS HUB  |  60 FPS"
-DockTitle.TextColor3 = THEME.TextMain
-DockTitle.Font = Enum.Font.GothamBold
-DockTitle.TextSize = 12
-DockTitle.TextXAlignment = Enum.TextXAlignment.Left
-DockTitle.Parent = TopBar
+local InfoLabel = Instance.new("TextLabel")
+InfoLabel.Size = UDim2.new(0, 160, 1, 0)
+InfoLabel.Position = UDim2.new(0, 32, 0, 0)
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.Text = "ISLAND HUB | 60 FPS"
+InfoLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
+InfoLabel.Font = Enum.Font.GothamBold
+InfoLabel.TextSize = 12
+InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+InfoLabel.Parent = TopBar
 
 local ExpandBtn = Instance.new("TextButton")
-ExpandBtn.Size = UDim2.new(0, 68, 0, 28)
-ExpandBtn.Position = UDim2.new(1, -78, 0.5, -14)
-ExpandBtn.BackgroundColor3 = THEME.Accent
+ExpandBtn.Size = UDim2.new(0, 68, 0, 26)
+ExpandBtn.Position = UDim2.new(1, -78, 0.5, -13)
+ExpandBtn.BackgroundColor3 = Color3.fromRGB(0, 230, 150)
 ExpandBtn.Text = "OPEN"
-ExpandBtn.TextColor3 = Color3.new(1, 1, 1)
+ExpandBtn.TextColor3 = Color3.fromRGB(12, 12, 15)
 ExpandBtn.Font = Enum.Font.GothamBold
 ExpandBtn.TextSize = 11
-ExpandBtn.AutoButtonColor = false
 ExpandBtn.Parent = TopBar
 Instance.new("UICorner", ExpandBtn).CornerRadius = UDim.new(1, 0)
 
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 28, 0, 28)
-CloseBtn.Position = UDim2.new(1, -36, 0.5, -14)
-CloseBtn.BackgroundColor3 = THEME.Danger
-CloseBtn.Text = "X"
-CloseBtn.TextColor3 = Color3.new(1, 1, 1)
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextSize = 12
-CloseBtn.Visible = false
-CloseBtn.Parent = TopBar
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
-CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+local Body = Instance.new("Frame")
+Body.Size = UDim2.new(1, -24, 1, -54)
+Body.Position = UDim2.new(0, 12, 0, 48)
+Body.BackgroundTransparency = 1
+Body.Parent = Dock
+Instance.new("UIListLayout", Body).Padding = UDim.new(0, 8)
 
--- EXPANDED CYBER-GLASS BODY
-local BodyContainer = Instance.new("Frame")
-BodyContainer.Size = UDim2.new(1, -16, 1, -54)
-BodyContainer.Position = UDim2.new(0, 8, 0, 48)
-BodyContainer.BackgroundTransparency = 1
-BodyContainer.Visible = false
-BodyContainer.Parent = MainFrame
-
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 140, 1, 0)
-Sidebar.BackgroundColor3 = THEME.BgSidebar
-Sidebar.BackgroundTransparency = 0.25
-Sidebar.BorderSizePixel = 0
-Sidebar.Parent = BodyContainer
-Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
-
-local TabList = Instance.new("Frame")
-TabList.Size = UDim2.new(1, -12, 1, -12)
-TabList.Position = UDim2.new(0, 6, 0, 6)
-TabList.BackgroundTransparency = 1
-TabList.Parent = Sidebar
-Instance.new("UIListLayout", TabList).Padding = UDim.new(0, 6)
-
-local ContentArea = Instance.new("Frame")
-ContentArea.Size = UDim2.new(1, -148, 1, 0)
-ContentArea.Position = UDim2.new(0, 148, 0, 0)
-ContentArea.BackgroundTransparency = 1
-ContentArea.Parent = BodyContainer
-
-local function ToggleDockState(forceState)
-    if forceState ~= nil then
-        isExpanded = forceState
-    else
-        isExpanded = not isExpanded
-    end
-
-    if isExpanded then
-        ExpandBtn.Text = "HIDE"
-        TweenService:Create(ExpandBtn, TweenInfo.new(0.2), {Position = UDim2.new(1, -110, 0.5, -14), BackgroundColor3 = THEME.BgElement}):Play()
-        CloseBtn.Visible = true
-        BodyContainer.Visible = true
-        TweenService:Create(MainFrame, TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 520, 0, 340),
-            Position = UDim2.new(MainFrame.Position.X.Scale, MainFrame.Position.X.Offset - 105, MainFrame.Position.Y.Scale, MainFrame.Position.Y.Offset)
-        }):Play()
-        TweenService:Create(MainFrame:FindFirstChildOfClass("UICorner"), TweenInfo.new(0.25), {CornerRadius = UDim.new(0, 14)}):Play()
-    else
-        ExpandBtn.Text = "OPEN"
-        TweenService:Create(ExpandBtn, TweenInfo.new(0.2), {Position = UDim2.new(1, -78, 0.5, -14), BackgroundColor3 = THEME.Accent}):Play()
-        CloseBtn.Visible = false
-        local tw = TweenService:Create(MainFrame, TweenInfo.new(0.24, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-            Size = UDim2.new(0, 310, 0, 44),
-            Position = UDim2.new(MainFrame.Position.X.Scale, MainFrame.Position.X.Offset + 105, MainFrame.Position.Y.Scale, MainFrame.Position.Y.Offset)
-        })
-        tw:Play()
-        TweenService:Create(MainFrame:FindFirstChildOfClass("UICorner"), TweenInfo.new(0.22), {CornerRadius = UDim.new(0, 22)}):Play()
-        tw.Completed:Connect(function()
-            if not isExpanded then BodyContainer.Visible = false end
-        end)
-    end
-end
-
-ExpandBtn.MouseButton1Click:Connect(function()
-    ToggleDockState()
-end)
-
--- UI CONSTRUCTOR API
-local pages = {}
-local tabBtns = {}
-
-local function CreateTab(name)
+local function AddDockButton(text, callback)
+    local active = false
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 34)
-    btn.BackgroundColor3 = THEME.BgElement
-    btn.BackgroundTransparency = 0.2
-    btn.Text = name
-    btn.TextColor3 = THEME.TextSub
-    btn.Font = Enum.Font.GothamSemibold
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(24, 25, 30)
+    btn.Text = text .. ": OFF"
+    btn.TextColor3 = Color3.fromRGB(200, 205, 215)
+    btn.Font = Enum.Font.GothamBold
     btn.TextSize = 13
-    btn.AutoButtonColor = false
-    btn.Parent = TabList
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-
-    local page = Instance.new("ScrollingFrame")
-    page.Size = UDim2.new(1, 0, 1, 0)
-    page.BackgroundTransparency = 1
-    page.ScrollBarThickness = 3
-    page.ScrollBarImageColor3 = THEME.Accent
-    page.CanvasSize = UDim2.new(0, 0, 0, 0)
-    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    page.Visible = false
-    page.Parent = ContentArea
-    local layout = Instance.new("UIListLayout", page)
-    layout.Padding = UDim.new(0, 8)
+    btn.Parent = Body
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
 
     btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(pages) do p.Visible = false end
-        for _, b in pairs(tabBtns) do
-            TweenService:Create(b, TweenInfo.new(0.15), {BackgroundColor3 = THEME.BgElement, TextColor3 = THEME.TextSub}):Play()
-        end
-        page.Visible = true
-        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.Accent, TextColor3 = Color3.new(1, 1, 1)}):Play()
-    end)
-
-    table.insert(pages, page)
-    table.insert(tabBtns, btn)
-    if #pages == 1 then
-        page.Visible = true
-        btn.BackgroundColor3 = THEME.Accent
-        btn.TextColor3 = Color3.new(1, 1, 1)
-    end
-    return page
-end
-
-local function AddToggle(page, text, callback)
-    local state = false
-    local holder = Instance.new("TextButton")
-    holder.Size = UDim2.new(1, -6, 0, 40)
-    holder.BackgroundColor3 = THEME.BgElement
-    holder.BackgroundTransparency = 0.15
-    holder.Text = "   " .. text
-    holder.TextColor3 = THEME.TextMain
-    holder.Font = Enum.Font.GothamSemibold
-    holder.TextSize = 13
-    holder.TextXAlignment = Enum.TextXAlignment.Left
-    holder.AutoButtonColor = false
-    holder.Parent = page
-    Instance.new("UICorner", holder).CornerRadius = UDim.new(0, 9)
-
-    local hStroke = Instance.new("UIStroke")
-    hStroke.Color = THEME.Stroke
-    hStroke.Thickness = 1
-    hStroke.Parent = holder
-
-    local pill = Instance.new("Frame")
-    pill.Size = UDim2.new(0, 40, 0, 20)
-    pill.Position = UDim2.new(1, -50, 0.5, -10)
-    pill.BackgroundColor3 = Color3.fromRGB(45, 52, 68)
-    pill.Parent = holder
-    Instance.new("UICorner", pill).CornerRadius = UDim.new(1, 0)
-
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 16, 0, 16)
-    knob.Position = UDim2.new(0, 2, 0.5, -8)
-    knob.BackgroundColor3 = Color3.new(1, 1, 1)
-    knob.Parent = pill
-    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-
-    holder.MouseButton1Click:Connect(function()
-        state = not state
-        TweenService:Create(pill, TweenInfo.new(0.15), {BackgroundColor3 = state and THEME.Accent or Color3.fromRGB(45, 52, 68)}):Play()
-        TweenService:Create(knob, TweenInfo.new(0.15), {Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}):Play()
-        TweenService:Create(hStroke, TweenInfo.new(0.15), {Color = state and THEME.Accent or THEME.Stroke}):Play()
-        if callback then callback(state) end
+        active = not active
+        btn.Text = text .. (active and ": ON" or ": OFF")
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = active and Color3.fromRGB(0, 230, 150) or Color3.fromRGB(24, 25, 30),
+            TextColor3 = active and Color3.fromRGB(12, 12, 15) or Color3.fromRGB(200, 205, 215)
+        }):Play()
+        if callback then callback(active) end
     end)
 end
 
-local function AddSlider(page, text, minVal, maxVal, defaultVal, callback)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -6, 0, 52)
-    frame.BackgroundColor3 = THEME.BgElement
-    frame.BackgroundTransparency = 0.15
-    frame.Parent = page
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 9)
+AddDockButton("NPC Magnet", function(v) end)
+AddDockButton("Kill Aura", function(v) end)
+AddDockButton("Auto Rebirth", function(v) end)
 
-    local fStroke = Instance.new("UIStroke")
-    fStroke.Color = THEME.Stroke
-    fStroke.Thickness = 1
-    fStroke.Parent = frame
+ExpandBtn.MouseButton1Click:Connect(function()
+    expanded = not expanded
+    ExpandBtn.Text = expanded and "CLOSE" or "OPEN"
+    TweenService:Create(Dock, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = expanded and UDim2.new(0, 320, 0, 200) or UDim2.new(0, 290, 0, 42),
+        Position = expanded and UDim2.new(0.5, -160, 0, 14) or UDim2.new(0.5, -145, 0, 14)
+    }):Play()
+end)
 
-    local lbl = Instance.new("TextLabel")
-lbl.Size = UDim2.new(1, -20, 0, 24)
-lbl.Position = UDim2.new(0, 10, 0, 4)
-lbl.BackgroundTransparency = 1
-lbl.Text = text .. ": " .. defaultVal
-lbl.TextColor3 = THEME.TextMain
-lbl.Font = Enum.Font.GothamSemibold
-lbl.TextSize = 12
-lbl.TextXAlignment = Enum.TextXAlignment.Left
-lbl.Parent = frame
-local bar = Instance.new("TextButton")
-bar.Size = UDim2.new(1, -20, 0, 8)
-bar.Position = UDim2.new(0, 10, 0, 34)
-bar.BackgroundColor3 = Color3.fromRGB(42, 48, 64)
-bar.Text = ""
-bar.AutoButtonColor = false
-bar.Parent = frame
-Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
-local fill = Instance.new("Frame")
-fill.Size = UDim2.new((defaultVal - minVal) / (maxVal - minVal), 0, 1, 0)
-fill.BackgroundColor3 = THEME.Accent
-fill.Parent = bar
-Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
-local dragging = false
-local function update(input)
-local pct = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-local val = math.floor(minVal + (maxVal - minVal) * pct)
-fill.Size = UDim2.new(pct, 0, 1, 0)
-lbl.Text = text .. ": " .. val
-if callback then callback(val) end
-end
-bar.InputBegan:Connect(function(inp)
-if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; update(inp) end
-end)
-UserInputService.InputEnded:Connect(function(inp)
-if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-end)
-UserInputService.InputChanged:Connect(function(inp)
-if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then update(inp) end
-end)
-end
-local function AddButton(page, text, callback)
-local btn = Instance.new("TextButton")
-btn.Size = UDim2.new(1, -6, 0, 38)
-btn.BackgroundColor3 = THEME.BgElement
-btn.BackgroundTransparency = 0.15
-btn.Text = text
-btn.TextColor3 = THEME.TextMain
-btn.Font = Enum.Font.GothamBold
-btn.TextSize = 13
-btn.AutoButtonColor = false
-btn.Parent = page
-Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 9)
-local bStroke = Instance.new("UIStroke")
-bStroke.Color = THEME.Stroke
-bStroke.Thickness = 1
-bStroke.Parent = btn
-btn.MouseEnter:Connect(function()
-TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.BgHover}):Play()
-end)
-btn.MouseLeave:Connect(function()
-TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.BgElement}):Play()
-end)
-btn.MouseButton1Click:Connect(function()
-if callback then callback() end
-end)
-end
--- DEMO TABS & ELEMENTS
-local tabFarm = CreateTab("Auto Farm")
-local tabCombat = CreateTab("Combat")
-local tabMisc = CreateTab("Misc")
-AddToggle(tabFarm, "Bring Mobs (Magnet)", function(state)
-print("Bring Mobs:", state)
-end)
-AddSlider(tabFarm, "Bring Distance", 5, 150, 20, function(val)
-print("Distance:", val)
-end)
-AddButton(tabFarm, "Teleport to Safe Zone", function()
-print("TP Safe Zone")
-end)
-AddToggle(tabCombat, "Auto Attack / Swing", function(state) end)
-AddToggle(tabCombat, "Kill Aura", function(state) end)
-AddToggle(tabMisc, "Anti-AFK", function(state) end)
--- LIVE FPS & HOTKEY
 local lastTime = os.clock()
 local frames = 0
 RunService.RenderStepped:Connect(function()
-frames = frames + 1
-if os.clock() - lastTime >= 1 then
-DockTitle.Text = "GLASS HUB  |  " .. frames .. " FPS"
-frames = 0
-lastTime = os.clock()
-end
+    frames = frames + 1
+    if os.clock() - lastTime >= 1 then
+        InfoLabel.Text = "ISLAND HUB | " .. frames .. " FPS"
+        frames = 0
+        lastTime = os.clock()
+    end
 end)
+
 UserInputService.InputBegan:Connect(function(inp, gp)
-if not gp and inp.KeyCode == Enum.KeyCode.RightControl then
-ToggleDockState()
-end
+    if not gp and inp.KeyCode == Enum.KeyCode.RightControl then
+        Dock.Visible = not Dock.Visible
+    end
 end)
