@@ -51,7 +51,8 @@ local THEME = {
 local Config = {
     WalkSpeed = 16, JumpPower = 50, FlySpeed = 50, FOV = 70,
     Noclip = false, Fullbright = false, AntiAFK = false, CustomStatus = "OVERWRITE",
-    Fly = false, MechFarm = false
+    Fly = false, MechFarm = false,
+    FarmDelay = 0.75
 }
 local ConfigPath = "Overwrite_Config.json"
 
@@ -751,7 +752,7 @@ local function startMechFarmLoop()
                             if targetPos then
                                 moveMechTo(mechRoot, mechModel, targetPos, 3.5)
                                 collectedAny = true
-                                task.wait(0.25)
+                                task.wait(Config.FarmDelay or 0.75)
                             end
                         end
                     end
@@ -785,6 +786,10 @@ AddSection(tabMech, "AUTO FARM")
 AddToggle(tabMech, "Enable Mech Farm", "MechFarm", function(s)
     Universal.MechFarm = s
     if s then task.spawn(startMechFarmLoop) end
+end)
+
+AddSlider(tabMech, "Collect Delay (ms)", 100, 2500, "FarmDelayMs", function(val)
+    Config.FarmDelay = val / 1000
 end)
 
 local arenaBtnRef = AddButton(tabMech, "Arena: AUTO", function()
