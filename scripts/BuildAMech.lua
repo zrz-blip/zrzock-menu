@@ -7,6 +7,10 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local player = LocalPlayer
 
+if getgenv().__OverwriteLoaded then
+    pcall(function() getgenv().__OverwriteLoaded:Destroy() end)
+end
+
 local parentContainer
 local ok, hui = pcall(gethui)
 if ok and hui then parentContainer = hui
@@ -542,7 +546,10 @@ local arenaIndex = 1
 local METAL_TYPES = {"Scrap", "Light", "Medium", "Heavy", "Colossal", "Titan"}
 local enabledMetals = { scrap = true, light = true, medium = true, heavy = true, colossal = true, titan = true }
 
+local cachedDropZonePos = nil
+
 local function getMyDropZone()
+    if cachedDropZonePos then return cachedDropZonePos end
     local plots = workspace:FindFirstChild("World") and workspace.World:FindFirstChild("Plots")
     if not plots then return nil end
     for _, plot in ipairs(plots:GetChildren()) do
@@ -551,7 +558,11 @@ local function getMyDropZone()
         local ownerSign = plotSign and plotSign:FindFirstChild("OwnerSign")
         local label = ownerSign and (ownerSign:IsA("TextLabel") and ownerSign or ownerSign:FindFirstChildWhichIsA("TextLabel", true))
         if label and label.Text:find(player.DisplayName, 1, true) then
-            return plot:FindFirstChild("DropZone", true) or plot:FindFirstChild("Pad", true)
+            local dz = plot:FindFirstChild("DropZone", true) or plot:FindFirstChild("Pad", true)
+            if dz then
+                cachedDropZonePos = dz
+                return dz
+            end
         end
     end
     return nil
