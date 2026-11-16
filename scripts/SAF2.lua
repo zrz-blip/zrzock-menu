@@ -141,6 +141,12 @@ local function useSelectedSkills()
 end
 
 local function toggleSkillSpam(state)
+	local autoFarmNPCEnabled = false
+
+createToggle(dummyContent, " SPAM SELECTED SKILLS", 0, toggleSkillSpam)
+createToggle(dummyContent, " AUTO FARM DUMMY", 40, function(state)
+	autoFarmNPCEnabled = state
+end)
 	autoSkillsEnabled = state
 	if spamThread then
 		task.cancel(spamThread)
