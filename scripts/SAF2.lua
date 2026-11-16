@@ -223,60 +223,6 @@ player.Idled:Connect(function()
 	end
 end)
 
-
-RunService.Heartbeat:Connect(function()
-    if autoFarmNPCEnabled then
-        local char = player.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local playersFolder = workspace:FindFirstChild("Players")
-            if playersFolder then
-                for _, dummy in ipairs(playersFolder:GetChildren()) do
-                    if dummy.Name:find("Dummy") and dummy:FindFirstChild("Humanoid") and dummy.Humanoid.Health > 0 then
-                        local dummyRoot = dummy:FindFirstChild("HumanoidRootPart") or dummy:FindFirstChild("Head")
-                        if dummyRoot then
-                            hrp.CFrame = CFrame.new(dummyRoot.Position + Vector3.new(0, 3, 0))
-                           
-                            for _, tool in ipairs(char:GetChildren()) do
-                                if tool:IsA("Tool") then pcall(function() tool:Activate() end) end
-                            end
-                            pcall(function()
-                                VirtualUser:CaptureController()
-                                VirtualUser:ClickButton1(Vector2.new(500, 500))
-                            end)
-                            break
-                        end
-                    end
-                end
-            end
-        end
-    end
-end)
-
-
-task.spawn(function()
-    while true do
-        task.wait(0.1) 
-        if autoSkillsEnabled then
-            local backpack = player:FindFirstChild("Backpack")
-            if backpack then
-                for _, item in ipairs(backpack:GetChildren()) do
-                    if item:IsA("Tool") then
-                        pcall(function()
-                            local char = player.Character
-                            if char and char:FindFirstChild("Humanoid") then
-                                char.Humanoid:EquipTool(item)
-                                task.wait(0.05)
-                                item:Activate()
-                            end
-                        end)
-                    end
-                end
-            end
-        end
-    end
-end)
-
 UIS.InputBegan:Connect(function(input, gp)
     if gp then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
