@@ -111,9 +111,6 @@ local function createToggle(parent, text, y, callback)
     return btn
 end
 
--- ============================================
--- ВКЛАДКА 1: DUMMY FARM
--- ============================================
 local selectedSkills = {} -- Список выбранных абилок (например: ["Gaster Blaster"] = true)
 local autoSkillsEnabled = false
 local spamThread = nil
@@ -171,10 +168,7 @@ local function scanSkills()
 	end
 end
 scanSkills()
--- КОНЕЦ ВСТАВКИ
--- ============================================
--- ВКЛАДКА 2: HALLOWEEN
--- ============================================
+
 local candyFarmEnabled = false
 
 createToggle(halloweenContent, "AUTO COLLECT CANDIES", 0, function(state) 
@@ -214,9 +208,6 @@ createToggle(halloweenContent, "AUTO COLLECT CANDIES", 0, function(state)
     end
 end)
 
--- ============================================
--- ВКЛАДКА 3: MISC (ANTI-AFK БЕЗ ДУБЛЕЙ)
--- ============================================
 local antiAFKEnabled = false
 
 createToggle(miscContent, " ANTI-AFK", 0, function(state)
@@ -232,11 +223,8 @@ player.Idled:Connect(function()
 	end
 end)
 
--- ============================================
--- ЛОГИКА РАБОТЫ
--- ============================================
+
 RunService.Heartbeat:Connect(function()
-    -- Фарм Dummy
     if autoFarmNPCEnabled then
         local char = player.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -248,7 +236,7 @@ RunService.Heartbeat:Connect(function()
                         local dummyRoot = dummy:FindFirstChild("HumanoidRootPart") or dummy:FindFirstChild("Head")
                         if dummyRoot then
                             hrp.CFrame = CFrame.new(dummyRoot.Position + Vector3.new(0, 3, 0))
-                            -- Обычный удар по думми
+                           
                             for _, tool in ipairs(char:GetChildren()) do
                                 if tool:IsA("Tool") then pcall(function() tool:Activate() end) end
                             end
@@ -265,10 +253,10 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- СПАМ ВСЕХ АБИЛОК
+
 task.spawn(function()
     while true do
-        task.wait(0.1) -- Задержка между кругами спама
+        task.wait(0.1) 
         if autoSkillsEnabled then
             local backpack = player:FindFirstChild("Backpack")
             if backpack then
@@ -315,4 +303,18 @@ local function loadMapZones(hrp)
 			task.wait(0.8)
 		end
 	end
+end
+local function getTargetNPC()
+	local playersFolder = workspace:FindFirstChild("Players")
+	if not playersFolder then return nil end
+
+	for _, npc in ipairs(playersFolder:GetChildren()) do
+		local hum = npc:FindFirstChild("Humanoid")
+		local isRealPlayer = npc:FindFirstChild("Camera") or game.Players:GetPlayerFromCharacter(npc)
+		if hum and hum.Health > 0 and not isRealPlayer and npc.Name:lower() ~= "pablo" then
+			local root = npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChild("Head")
+			if root then return root end
+		end
+	end
+	return nil
 end
