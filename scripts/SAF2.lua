@@ -1,16 +1,10 @@
--- ============================================
--- SANS AUs FIGHTER 2 + HALLOWEEN MAP — TABBED HUB (FIXED)
--- ============================================
-print("=== TABBED HUB START ===")
+
 
 local player = game.Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 
--- ============================================
--- GUI (Стиль Sans, с Вкладками)
--- ============================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SansTabbedHub"
 ScreenGui.ResetOnSpawn = false
