@@ -123,6 +123,22 @@ end
 local selectedSkills = {} -- Список выбранных абилок (например: ["Gaster Blaster"] = true)
 local autoSkillsEnabled = false
 local spamThread = nil
+local function useSelectedSkills()
+	local char = player.Character
+	local hum = char and char:FindFirstChild("Humanoid")
+	local backpack = player:FindFirstChild("Backpack")
+	if not (hum and backpack) then return end
+
+	for _, item in ipairs(backpack:GetChildren()) do
+		if item:IsA("Tool") and selectedSkills[item.Name] then
+			pcall(function()
+				hum:EquipTool(item)
+				task.wait(0.05)
+				item:Activate()
+			end)
+		end
+	end
+end
 
 local function toggleSkillSpam(state)
 	autoSkillsEnabled = state
