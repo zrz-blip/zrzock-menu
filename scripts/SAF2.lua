@@ -264,3 +264,26 @@ local function getTargetNPC()
 	end
 	return nil
 end
+function toggleAutoFarm(state) -- Уберите ключевое слово local, чтобы кнопка корректно видела функцию внизу скрипта
+	autoFarmNPCEnabled = state
+	if farmThread then task.cancel(farmThread) farmThread = nil end
+	if not state then return end
+
+	farmThread = task.spawn(function()
+		while autoFarmNPCEnabled do
+			local char = player.Character
+			local hrp = char and char:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				local target = getTargetNPC()
+				if target then
+					hrp.CFrame = CFrame.new(target.Position + Vector3.new(0, 3, 0))
+					VirtualUser:CaptureController()
+					VirtualUser:ClickButton1(Vector2.new(500, 500))
+				else
+					loadMapZones(hrp)
+				end
+			end
+			task.wait(0.2)
+		end
+	end)
+end
