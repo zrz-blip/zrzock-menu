@@ -169,23 +169,21 @@ createToggle(halloweenContent, "AUTO COLLECT CANDIES", 0, function(state)
 end)
 
 -- ============================================
--- ВКЛАДКА 3: MISC (ANTI-AFK)
+-- ВКЛАДКА 3: MISC (ANTI-AFK БЕЗ ДУБЛЕЙ)
 -- ============================================
 local antiAFKEnabled = false
 
-createToggle(miscContent, "ANTI-AFK", 0, function(state)
-    antiAFKEnabled = state
-    if state then
-        task.spawn(function()
-            while antiAFKEnabled do
-                task.wait(30)
-                pcall(function()
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton2(Vector2.new(500, 400))
-                end)
-            end
-        end)
-    end
+createToggle(miscContent, " ANTI-AFK", 0, function(state)
+	antiAFKEnabled = state
+end)
+
+player.Idled:Connect(function()
+	if antiAFKEnabled then
+		pcall(function()
+			VirtualUser:CaptureController()
+			VirtualUser:ClickButton2(Vector2.new(500, 400))
+		end)
+	end
 end)
 
 -- ============================================
