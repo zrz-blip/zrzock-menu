@@ -161,6 +161,23 @@ createToggle(dummyContent, " SPAM SELECTED SKILLS", 0, toggleSkillSpam)
 createToggle(dummyContent, " AUTO FARM DUMMY", 40, function(state)
 	autoFarmNPCEnabled = state
 end)
+local skillY = 85
+
+local function scanSkills()
+	local backpack = player:FindFirstChild("Backpack")
+	if not backpack then return end
+	for _, item in ipairs(backpack:GetChildren()) do
+		if item:IsA("Tool") and selectedSkills[item.Name] == nil then
+			selectedSkills[item.Name] = false
+			createToggle(dummyContent, " SKILL: " .. item.Name, skillY, function(state)
+				selectedSkills[item.Name] = state
+			end)
+			skillY = skillY + 38
+		end
+	end
+end
+scanSkills()
+-- КОНЕЦ ВСТАВКИ
 -- ============================================
 -- ВКЛАДКА 2: HALLOWEEN
 -- ============================================
