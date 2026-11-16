@@ -150,7 +150,7 @@ end
 local autoFarmNPCEnabled = false
 createToggle(dummyContent, " SPAM SELECTED SKILLS", 0, toggleSkillSpam)
 createToggle(dummyContent, " AUTO FARM DUMMY", 40, function(state)
-	autoFarmNPCEnabled = state
+	if toggleAutoFarm then toggleAutoFarm(state) end
 end)
 local skillY = 85
 
