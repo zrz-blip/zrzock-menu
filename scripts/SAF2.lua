@@ -111,48 +111,31 @@ local function createToggle(parent, text, y, callback)
     return btn
 end
 
-local selectedSkills = {} -- Список выбранных абилок (например: ["Gaster Blaster"] = true)
+local selectedSlots = {} -- Таблица выбранных слотов: [1] = true, [2] = false ... [10] = true
 local autoSkillsEnabled = false
 local spamThread = nil
+
 local function useSelectedSkills()
 	local char = player.Character
 	local hum = char and char:FindFirstChild("Humanoid")
 	local backpack = player:FindFirstChild("Backpack")
 	if not (hum and backpack) then return end
 
+	local tools = {}
+	for _, item in ipairs(char:GetChildren()) do
+		if item:IsA("Tool") then table.insert(tools, item) end
+	end
 	for _, item in ipairs(backpack:GetChildren()) do
-		if item:IsA("Tool") and selectedSkills[item.Name] then
-			pcall(function()
-				hum:EquipTool(item)
-				task.wait(0.05)
-				item:Activate()
-			end)
+		if item:IsA("Tool") then table.insert(tools, item) end
+	end
+	table.sort(tools, function(a, b) return a.Name < b.Name end)
+
+	for i = 1, 10 do
+		if selectedSlots[i] and tools[i] then
+			pcall(function() hum:EquipTool(tools[i]) task.wait(0.05) tools[i]:Activate() end)
 		end
 	end
 end
-
-local function toggleSkillSpam(state)
-	autoSkillsEnabled = state
-	if spamThread then
-		task.cancel(spamThread)
-		spamThread = nil
-	end
-	if state then
-		spamThread = task.spawn(function()
-			while autoSkillsEnabled do
-				useSelectedSkills()
-				task.wait(0.15)
-			end
-		end)
-	end
-end 
-
-local autoFarmNPCEnabled = false
-createToggle(dummyContent, " SPAM SELECTED SKILLS", 0, toggleSkillSpam)
-createToggle(dummyContent, " AUTO FARM DUMMY", 40, function(state)
-	if toggleAutoFarm then toggleAutoFarm(state) end
-end)
-local skillY = 85
 
 local function scanSkills()
 	local backpack = player:FindFirstChild("Backpack")
