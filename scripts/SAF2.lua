@@ -148,6 +148,16 @@ local function toggleSkillSpam(state)
 	end
 end
 local candyFarmEnabled = false
+createToggle(dummyContent, " SPAM SELECTED SKILLS", 0, toggleSkillSpam)
+createToggle(dummyContent, " AUTO FARM DUMMY", 40, function(state) if toggleAutoFarm then toggleAutoFarm(state) end end)
+
+for i = 1, 10 do
+	local b = Instance.new("TextButton", dummyContent)
+	b.Size, b.Position = UDim2.new(0.18, 0, 0, 35), UDim2.new(((i - 1) % 5) * 0.2, 0, 0, 85 + math.floor((i - 1) / 5) * 40)
+	b.BackgroundColor3, b.BorderColor3, b.TextColor3 = Color3.fromRGB(30, 30, 30), Color3.new(1, 1, 1), Color3.new(1, 1, 1)
+	b.Font, b.TextSize, b.Text = Enum.Font.Code, 14, tostring(i % 10)
+	b.MouseButton1Click:Connect(function() selectedSlots[i] = not selectedSlots[i] b.BackgroundColor3 = selectedSlots[i] and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(30, 30, 30) end)
+end
 
 createToggle(halloweenContent, "AUTO COLLECT CANDIES", 0, function(state) 
     candyFarmEnabled = state
