@@ -301,5 +301,24 @@ UIS.InputBegan:Connect(function(input, gp)
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
+local farmThread = nil
 
-print("=== TABBED HUB READY ===")
+local function loadMapZones(hrp)
+	local map = workspace:FindFirstChild("Map")
+	if not map then return end
+
+	local points = {
+		map:FindFirstChild("Hotlands") and map.Hotlands:GetChildren()[9],
+		map:FindFirstChild("Zone") and map.Zone:FindFirstChild("Waterfall") and map.Zone.Waterfall:FindFirstChild("Part"),
+		map:FindFirstChild("Zone") and map.Zone:FindFirstChild("Snowdin") and map.Zone.Snowdin:FindFirstChild("Part"),
+		map:FindFirstChild("Zone") and map.Zone:FindFirstChild("Ruins") and map.Zone.Ruins:FindFirstChild("Part")
+	}
+
+	for _, part in ipairs(points) do
+		if not autoFarmNPCEnabled then break end
+		if part and part:IsA("BasePart") then
+			hrp.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+			task.wait(0.8)
+		end
+	end
+end
