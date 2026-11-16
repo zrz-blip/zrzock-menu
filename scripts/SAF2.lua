@@ -120,12 +120,26 @@ end
 -- ============================================
 -- ВКЛАДКА 1: DUMMY FARM
 -- ============================================
+local selectedSkills = {} -- Список выбранных абилок (например: ["Gaster Blaster"] = true)
 local autoSkillsEnabled = false
-local autoFarmNPCEnabled = false
+local spamThread = nil
 
-createToggle(dummyContent, "SPAM ALL SKILLS", 0, function(state) autoSkillsEnabled = state end)
-createToggle(dummyContent, "AUTO FARM DUMMY", 40, function(state) autoFarmNPCEnabled = state end)
-
+local function toggleSkillSpam(state)
+	autoSkillsEnabled = state
+	if spamThread then
+		task.cancel(spamThread)
+		spamThread = nil
+	end
+	if state then
+		spamThread = task.spawn(function()
+			while autoSkillsEnabled do
+				-- Вызов функции проверки и активации (будет в Части 2)
+				useSelectedSkills()
+				task.wait(0.15)
+			end
+		end)
+	end
+end
 -- ============================================
 -- ВКЛАДКА 2: HALLOWEEN
 -- ============================================
