@@ -141,12 +141,6 @@ local function useSelectedSkills()
 end
 
 local function toggleSkillSpam(state)
-	local autoFarmNPCEnabled = false
-
-createToggle(dummyContent, " SPAM SELECTED SKILLS", 0, toggleSkillSpam)
-createToggle(dummyContent, " AUTO FARM DUMMY", 40, function(state)
-	autoFarmNPCEnabled = state
-end)
 	autoSkillsEnabled = state
 	if spamThread then
 		task.cancel(spamThread)
@@ -155,13 +149,18 @@ end)
 	if state then
 		spamThread = task.spawn(function()
 			while autoSkillsEnabled do
-				-- Вызов функции проверки и активации (будет в Части 2)
 				useSelectedSkills()
 				task.wait(0.15)
 			end
 		end)
 	end
-end
+end 
+
+local autoFarmNPCEnabled = false
+createToggle(dummyContent, " SPAM SELECTED SKILLS", 0, toggleSkillSpam)
+createToggle(dummyContent, " AUTO FARM DUMMY", 40, function(state)
+	autoFarmNPCEnabled = state
+end)
 -- ============================================
 -- ВКЛАДКА 2: HALLOWEEN
 -- ============================================
